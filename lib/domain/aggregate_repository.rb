@@ -1,4 +1,5 @@
 require 'active_support/inflector'
+require_relative '../support/guid'
 
 module RubyCqrs
   class AggregateNotFound < Error; end
@@ -15,7 +16,7 @@ module RubyCqrs
 
       def find_by aggregate_id
         raise ArgumentError if aggregate_id.nil?
-        raise ArgumentError unless UUIDTools::UUID.parse_raw(aggregate_id).valid?
+        raise ArgumentError unless Guid.validate? aggregate_id
 
         aggregate_type, events = @event_store.load_by(aggregate_id, @context)
         raise AggregateNotFound if (aggregate_type.nil? or events.nil? or events.empty?)

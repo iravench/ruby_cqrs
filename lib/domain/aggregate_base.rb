@@ -1,5 +1,4 @@
 require 'active_support/inflector'
-require 'uuidtools'
 
 module RubyCqrs
   module Domain
@@ -8,7 +7,7 @@ module RubyCqrs
 
     private
       def initialize
-        @aggregate_id = UUIDTools::UUID.timestamp_create.to_s
+        @aggregate_id = Guid.create
         @version = 0
         @source_version = 0
         @event_handler_cache = {}

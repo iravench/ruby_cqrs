@@ -1,8 +1,8 @@
 require 'rspec/expectations'
-require 'uuidtools'
+require_relative '../spec_helper.rb'
 
 RSpec::Matchers.define :be_a_valid_uuid do
   match do |uuid_string|
-    UUIDTools::UUID.parse_raw(uuid_string).valid?
+    RubyCqrs::Guid.validate? uuid_string
   end
 end
