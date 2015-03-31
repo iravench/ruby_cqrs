@@ -139,7 +139,7 @@ describe RubyCqrs::Domain::AggregateRepository do
             end
           end
 
-          describe 'if something wrong happened during the saving process' do
+          describe 'if some unknown error happened during the saving process' do
             before(:each) do
               expect(event_store).to receive(:save) { raise StandardError }
             end
@@ -156,6 +156,14 @@ describe RubyCqrs::Domain::AggregateRepository do
                 raise_error(RubyCqrs::AggregateNotPersisted)
 
               expect(changed_aggregate.source_version).to eq(original_source_version)
+            end
+          end
+
+          describe 'if an AggregateConcurrencyError happened during the saving process' do
+            it 're-raise the AggregateConcurrencyError' do
+              expect(event_store).to receive(:save) { raise RubyCqrs::AggregateConcurrencyError }
+              expect { repository.save(changed_aggregate) }.to\
+                raise_error(RubyCqrs::AggregateConcurrencyError)
             end
           end
         end
@@ -214,7 +222,7 @@ describe RubyCqrs::Domain::AggregateRepository do
             end
           end
 
-          describe 'if something wrong happened during the saving process' do
+          describe 'if some unknown error happened during the saving process' do
             before(:each) do
               expect(event_store).to receive(:save) { raise StandardError }
             end
@@ -233,6 +241,14 @@ describe RubyCqrs::Domain::AggregateRepository do
 
               expect(two_aggregates[0].source_version).to eq(original_source_version_0)
               expect(two_aggregates[1].source_version).to eq(original_source_version_1)
+            end
+          end
+
+          describe 'if an AggregateConcurrencyError happened during the saving process' do
+            it 're-raise the AggregateConcurrencyError' do
+              expect(event_store).to receive(:save) { raise RubyCqrs::AggregateConcurrencyError }
+              expect { repository.save(two_aggregates) }.to\
+                raise_error(RubyCqrs::AggregateConcurrencyError)
             end
           end
         end
