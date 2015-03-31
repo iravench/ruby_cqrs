@@ -1,0 +1,7 @@
+require('ruby_cqrs/version')
+require('ruby_cqrs/error')
+require('ruby_cqrs/guid')
+require('ruby_cqrs/domain/event')
+require('ruby_cqrs/domain/aggregate_base')
+require('ruby_cqrs/domain/aggregate_repository')
+require('ruby_cqrs/data/event_store')

@@ -1,5 +1,5 @@
 require 'active_support/inflector'
-require_relative '../support/guid'
+require_relative '../guid'
 
 module RubyCqrs
   class AggregateNotFound < Error; end
