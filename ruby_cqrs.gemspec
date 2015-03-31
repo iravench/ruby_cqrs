@@ -22,4 +22,7 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files  = [ "README.md" ]
   s.rdoc_options      = ["--charset=UTF-8"]
   s.require_path      = ["lib"]
+
+  s.add_runtime_dependency "uuidtools", "2.1.5"
+  s.add_runtime_dependency "activesupport", "4.2.1"
 end
