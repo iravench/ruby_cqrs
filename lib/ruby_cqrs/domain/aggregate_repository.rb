@@ -8,17 +8,17 @@ module RubyCqrs
 
   module Domain
     class AggregateRepository
-      def initialize event_store, context
+      def initialize event_store, command_context
         raise ArgumentError unless event_store.is_a? Data::EventStore
         @event_store = event_store
-        @context = context
+        @command_context = command_context
       end
 
       def find_by aggregate_id
         raise ArgumentError if aggregate_id.nil?
         raise ArgumentError unless Guid.validate? aggregate_id
 
-        aggregate_type, events = @event_store.load_by(aggregate_id, @context)
+        aggregate_type, events = @event_store.load_by(aggregate_id, @command_context)
         raise AggregateNotFound if (aggregate_type.nil? or events.nil? or events.empty?)
 
         create_instance_from aggregate_type, events
@@ -42,7 +42,7 @@ module RubyCqrs
       def delegate_persistence_of aggregates
         changes = prep_changes_for(aggregates)
         if changes.size > 0
-          @event_store.save changes, @context
+          @event_store.save changes, @command_context
           aggregates.each do |aggregate|
             aggregate.send(:commit)
           end

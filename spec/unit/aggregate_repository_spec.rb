@@ -8,19 +8,19 @@ describe RubyCqrs::Domain::AggregateRepository do
     allow(_event_store).to receive(:load_by).and_return(event_store_load_result)
     _event_store
   end
-  let(:context) { Object.new }
-  let(:repository) { RubyCqrs::Domain::AggregateRepository.new event_store, context }
+  let(:command_context) { Object.new }
+  let(:repository) { RubyCqrs::Domain::AggregateRepository.new event_store, command_context }
   let(:aggregate_type) { SomeDomain::AggregateRoot }
   let(:aggregate_id) { SomeDomain::AGGREGATE_ID }
 
   describe '#new' do
     context 'when expecting arguments' do
       it 'raises ArgumentError when the first argument is not an descendant from EventStore' do
-        expect { RubyCqrs::Domain::AggregateRepository.new Object.new, context }.to raise_error ArgumentError
+        expect { RubyCqrs::Domain::AggregateRepository.new Object.new, command_context }.to raise_error ArgumentError
       end
 
-      it 'is initialized with an EventStore instance and an Context instance' do
-        RubyCqrs::Domain::AggregateRepository.new event_store, context
+      it 'is initialized with an EventStore instance and an CommandContext instance' do
+        RubyCqrs::Domain::AggregateRepository.new event_store, command_context
       end
     end
   end
@@ -37,9 +37,9 @@ describe RubyCqrs::Domain::AggregateRepository do
     end
 
     it "delegates the actual data loading to the EventStore instance's #load_by" do
-      expect(event_store).to receive(:load_by) do |some_guid, domain_context|
+      expect(event_store).to receive(:load_by) do |some_guid, some_command_context|
         expect(UUIDTools::UUID.parse_raw(some_guid).valid?).to be(true)
-        expect(domain_context).to be(context)
+        expect(some_command_context).to be(command_context)
       end.and_return event_store_load_result
 
       repository.find_by(aggregate_id)
@@ -52,7 +52,7 @@ describe RubyCqrs::Domain::AggregateRepository do
         _event_store
       end
       let(:matches_nothing_repository) { RubyCqrs::Domain::AggregateRepository.new\
-                                         empty_event_store, context }
+                                         empty_event_store, command_context }
 
       it 'raises error of type AggregateNotFound' do
         expect { matches_nothing_repository.find_by(aggregate_id) }.to \
@@ -120,9 +120,9 @@ describe RubyCqrs::Domain::AggregateRepository do
           end
 
           it "delegates event persistence to the EventStore instance's #save" do
-            expect(event_store).to receive(:save) do |aggregate_changes, domain_context|
+            expect(event_store).to receive(:save) do |aggregate_changes, some_command_context|
               expect(aggregate_changes.size).to eq(1)
-              expect(domain_context).to be(context)
+              expect(some_command_context).to be(command_context)
             end
 
             repository.save(changed_aggregate)
@@ -182,9 +182,9 @@ describe RubyCqrs::Domain::AggregateRepository do
           end
 
           it "delegates event persistence to the EventStore instance's #save" do
-            expect(event_store).to receive(:save) do |aggregate_changes, domain_context|
+            expect(event_store).to receive(:save) do |aggregate_changes, some_command_context|
               expect(aggregate_changes.size).to eq(1)
-              expect(domain_context).to be(context)
+              expect(some_command_context).to be(command_context)
             end
 
             repository.save(two_aggregates)
@@ -246,9 +246,9 @@ describe RubyCqrs::Domain::AggregateRepository do
           end
 
           it "delegates event persistence to the EventStore instance's #save" do
-            expect(event_store).to receive(:save) do |aggregate_changes, domain_context|
+            expect(event_store).to receive(:save) do |aggregate_changes, some_command_context|
               expect(aggregate_changes.size).to eq(2)
-              expect(domain_context).to be(context)
+              expect(some_command_context).to be(command_context)
             end
 
             repository.save(two_aggregates)
