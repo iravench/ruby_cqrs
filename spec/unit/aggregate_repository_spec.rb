@@ -1,8 +1,8 @@
 require_relative('../spec_helper')
 
 describe RubyCqrs::Domain::AggregateRepository do
-  let(:sorted_events) { SomeDomain::SORTED_EVENTS }
-  let(:event_store_load_result) { ['SomeDomain::AggregateRoot', sorted_events] }
+  let(:unsorted_events) { SomeDomain::UNSORTED_EVENTS }
+  let(:event_store_load_result) { ['SomeDomain::AggregateRoot', unsorted_events] }
   let(:event_store) do
     _event_store = RubyCqrs::Data::EventStore.new
     allow(_event_store).to receive(:load_by).and_return(event_store_load_result)
@@ -62,22 +62,22 @@ describe RubyCqrs::Domain::AggregateRepository do
 
     context 'when the specified aggregate is found' do
       let(:aggregate) { repository.find_by(aggregate_id) }
-      let(:expeced_version) { sorted_events.size }
-      let(:expeced_source_version) { sorted_events.size }
+      let(:expeced_version) { unsorted_events.size }
+      let(:expeced_source_version) { unsorted_events.size }
 
-      it 'is an instance of expected type' do
+      it 'returns an instance of expected type' do
         expect(aggregate).to be_an_instance_of(aggregate_type)
       end
 
-      it 'is an instance of expected aggregate_id' do
+      it 'returns an instance of expected aggregate_id' do
         expect(aggregate.aggregate_id).to eq(aggregate_id)
       end
 
-      it 'is an instance of expected version' do
+      it 'returns an instance of expected version' do
         expect(aggregate.version).to eq(expeced_version)
       end
 
-      it 'is an instance of expected source_version' do
+      it 'returns an instance of expected source_version' do
         expect(aggregate.source_version).to eq(expeced_source_version)
       end
     end
@@ -139,31 +139,23 @@ describe RubyCqrs::Domain::AggregateRepository do
             end
           end
 
-          describe 'if some unknown error happened during the saving process' do
+          describe 'if some error happened during the saving process' do
             before(:each) do
-              expect(event_store).to receive(:save) { raise StandardError }
+              expect(event_store).to receive(:save) { raise RubyCqrs::AggregateConcurrencyError }
             end
 
-            it 'raise AggregateNotPersisted error' do
+            it 'bubbles up that error directly' do
               expect { repository.save(changed_aggregate) }.to\
-                raise_error(RubyCqrs::AggregateNotPersisted)
+                raise_error(RubyCqrs::AggregateConcurrencyError)
             end
 
             it 'has source_version unchanged' do
               original_source_version = changed_aggregate.source_version
 
               expect { repository.save(changed_aggregate) }.to\
-                raise_error(RubyCqrs::AggregateNotPersisted)
+                raise_error(RubyCqrs::AggregateConcurrencyError)
 
               expect(changed_aggregate.source_version).to eq(original_source_version)
-            end
-          end
-
-          describe 'if an AggregateConcurrencyError happened during the saving process' do
-            it 're-raise the AggregateConcurrencyError' do
-              expect(event_store).to receive(:save) { raise RubyCqrs::AggregateConcurrencyError }
-              expect { repository.save(changed_aggregate) }.to\
-                raise_error(RubyCqrs::AggregateConcurrencyError)
             end
           end
         end
@@ -222,14 +214,14 @@ describe RubyCqrs::Domain::AggregateRepository do
             end
           end
 
-          describe 'if some unknown error happened during the saving process' do
+          describe 'if some error happened during the saving process' do
             before(:each) do
-              expect(event_store).to receive(:save) { raise StandardError }
+              expect(event_store).to receive(:save) { raise RubyCqrs::AggregateConcurrencyError }
             end
 
-            it 'raise AggregateNotPersisted error' do
+            it 'bubbles up that error directly' do
               expect { repository.save(two_aggregates) }.to\
-                raise_error(RubyCqrs::AggregateNotPersisted)
+                raise_error(RubyCqrs::AggregateConcurrencyError)
             end
 
             it 'has source_version unchanged' do
@@ -237,18 +229,10 @@ describe RubyCqrs::Domain::AggregateRepository do
               original_source_version_1 = two_aggregates[1].source_version
 
               expect { repository.save(two_aggregates) }.to\
-                raise_error(RubyCqrs::AggregateNotPersisted)
+                raise_error(RubyCqrs::AggregateConcurrencyError)
 
               expect(two_aggregates[0].source_version).to eq(original_source_version_0)
               expect(two_aggregates[1].source_version).to eq(original_source_version_1)
-            end
-          end
-
-          describe 'if an AggregateConcurrencyError happened during the saving process' do
-            it 're-raise the AggregateConcurrencyError' do
-              expect(event_store).to receive(:save) { raise RubyCqrs::AggregateConcurrencyError }
-              expect { repository.save(two_aggregates) }.to\
-                raise_error(RubyCqrs::AggregateConcurrencyError)
             end
           end
         end
@@ -285,12 +269,12 @@ describe RubyCqrs::Domain::AggregateRepository do
 
           describe 'if something wrong happened during the saving process' do
             before(:each) do
-              expect(event_store).to receive(:save) { raise StandardError }
+              expect(event_store).to receive(:save) { raise RubyCqrs::AggregateConcurrencyError }
             end
 
-            it 'raise AggregateNotPersisted error' do
+            it 'bubbles up that error directly' do
               expect { repository.save(two_aggregates) }.to\
-                raise_error(RubyCqrs::AggregateNotPersisted)
+                raise_error(RubyCqrs::AggregateConcurrencyError)
             end
 
             it 'has source_version unchanged' do
@@ -298,7 +282,7 @@ describe RubyCqrs::Domain::AggregateRepository do
               original_source_version_1 = two_aggregates[1].source_version
 
               expect { repository.save(two_aggregates) }.to\
-                raise_error(RubyCqrs::AggregateNotPersisted)
+                raise_error(RubyCqrs::AggregateConcurrencyError)
 
               expect(two_aggregates[0].source_version).to eq(original_source_version_0)
               expect(two_aggregates[1].source_version).to eq(original_source_version_1)

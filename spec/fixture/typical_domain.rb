@@ -29,4 +29,5 @@ module SomeDomain
   class ForthEvent < RubyCqrs::Domain::Event; end
 
   SORTED_EVENTS = [FirstEvent.new, SecondEvent.new]
+  UNSORTED_EVENTS = [SecondEvent.new, FirstEvent.new]
 end

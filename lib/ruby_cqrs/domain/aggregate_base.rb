@@ -20,7 +20,8 @@ module RubyCqrs
         @pending_events << event
       end
 
-      def load_from sorted_events
+      def load_from events
+        sorted_events = events.sort { |x, y| x.version <=> y.version }
         @aggregate_id = sorted_events[0].aggregate_id
         sorted_events.each do |event|
           apply(event)

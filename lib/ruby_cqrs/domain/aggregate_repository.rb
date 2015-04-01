@@ -41,17 +41,11 @@ module RubyCqrs
 
       def delegate_persistence_of aggregates
         changes = prep_changes_for(aggregates)
-        begin
-          if changes.size > 0
-            @event_store.save changes, @context
-            aggregates.each do |aggregate|
-              aggregate.send(:commit)
-            end
+        if changes.size > 0
+          @event_store.save changes, @context
+          aggregates.each do |aggregate|
+            aggregate.send(:commit)
           end
-        rescue AggregateConcurrencyError
-          raise
-        rescue
-          raise AggregateNotPersisted
         end
         nil
       end

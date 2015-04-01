@@ -66,11 +66,11 @@ describe RubyCqrs::Domain::AggregateBase do
   end
 
   describe '#load_from' do
-    let(:sorted_events) { SomeDomain::SORTED_EVENTS }
-    let(:loaded_aggregate) { aggregate_root.send(:load_from, sorted_events); aggregate_root; }
+    let(:unsorted_events) { SomeDomain::UNSORTED_EVENTS }
+    let(:loaded_aggregate) { aggregate_root.send(:load_from, unsorted_events); aggregate_root; }
 
     context 'when loading from 2 events' do
-      after(:each) { aggregate_root.send(:load_from, sorted_events) }
+      after(:each) { aggregate_root.send(:load_from, unsorted_events) }
 
       it 'calls #on_first_event' do
         expect(aggregate_root).to receive(:on_first_event)
@@ -78,6 +78,11 @@ describe RubyCqrs::Domain::AggregateBase do
 
       it 'calls #on_second_event' do
         expect(aggregate_root).to receive(:on_second_event)
+      end
+
+      it 'calls #on_first_event, #on_second_event in order' do
+        expect(aggregate_root).to receive(:on_first_event).ordered
+        expect(aggregate_root).to receive(:on_second_event).ordered
       end
     end
 
