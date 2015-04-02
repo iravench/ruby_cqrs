@@ -56,7 +56,9 @@ module RubyCqrs
         { :events => @pending_events,
           :aggregate_id => @aggregate_id,
           :aggregate_type => self.class.name,
-          :expected_persisted_version => @source_version
+          :expecting_source_version => @source_version,
+          :expecting_version => @pending_events.max\
+          { |a, b| a.version <=> b.version }.version
         }
       end
 

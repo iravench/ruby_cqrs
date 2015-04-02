@@ -60,7 +60,8 @@ describe RubyCqrs::Domain::AggregateBase do
         expect(pending_changes[:events][1].version).to eq(2)
         expect(pending_changes[:aggregate_id]).to eq(aggregate_root.aggregate_id)
         expect(pending_changes[:aggregate_type]).to eq(aggregate_root.class.name)
-        expect(pending_changes[:expected_persisted_version]).to eq(0)
+        expect(pending_changes[:expecting_source_version]).to eq(0)
+        expect(pending_changes[:expecting_version]).to eq(2)
       end
     end
   end
