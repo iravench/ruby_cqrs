@@ -1,5 +1,5 @@
 require 'bundler'
-Bundler.setup(:default, :spec)
+Bundler.setup(:default, :test)
 $LOAD_PATH.unshift File.expand_path('../../lib', __FILE__)
 
 require('support/matchers')
