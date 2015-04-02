@@ -18,10 +18,10 @@ module RubyCqrs
         raise ArgumentError if aggregate_id.nil?
         raise ArgumentError unless Guid.validate? aggregate_id
 
-        aggregate_type, events = @event_store.load_by(aggregate_id, @command_context)
-        raise AggregateNotFound if (aggregate_type.nil? or events.nil? or events.empty?)
+        aggregate_type_str, events = @event_store.load_by(aggregate_id, @command_context)
+        raise AggregateNotFound if (aggregate_type_str.nil? or events.nil? or events.empty?)
 
-        create_instance_from aggregate_type, events
+        create_instance_from aggregate_type_str, events
       end
 
       def save one_or_many_aggregate
@@ -33,8 +33,8 @@ module RubyCqrs
       end
 
     private
-      def create_instance_from aggregate_type, events
-        instance = aggregate_type.constantize.new
+      def create_instance_from aggregate_type_str, events
+        instance = aggregate_type_str.constantize.new
         instance.send(:load_from, events)
         instance
       end
