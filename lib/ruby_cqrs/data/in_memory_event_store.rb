@@ -14,11 +14,8 @@ module RubyCqrs
       def save changes, command_context
         changes.each do |change|
           key = change[:aggregate_id].to_sym
-          if @aggregate_store.has_key? key
-            update_aggregate key, change
-          else
-            create_aggregate key, change
-          end
+          create_aggregate key, change unless @aggregate_store.has_key? key
+          update_aggregate key, change
         end
       end
 
@@ -26,8 +23,8 @@ module RubyCqrs
       def create_aggregate key, change
         @aggregate_store[key] = {
           :type => change[:aggregate_type],
-          :version => change[:expecting_version] }
-        @event_store[key] = { :events => change[:events] }
+          :version => 0 }
+        @event_store[key] = { :events => [] }
       end
 
       def update_aggregate key, change
