@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/iravench/ruby_cqrs.svg?branch=master)](https://travis-ci.org/iravench/ruby_cqrs)
+
 # RubyCqrs
 
 A Ruby implementation of CQRS, using event sourcing.
