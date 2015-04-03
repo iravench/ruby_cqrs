@@ -13,10 +13,12 @@ module RubyCqrs
         [ @aggregate_store[key][:type], @event_store[key][:events].map { |event| try_decode event } ]
       end
 
+      # notice there could be partial save here when verify_state raise an error
       def save changes, command_context
         changes.each do |change|
           key = change[:aggregate_id].to_sym
           create_aggregate key, change unless @aggregate_store.has_key? key
+          verify_state key, change
           update_aggregate key, change
         end
       end
@@ -37,6 +39,11 @@ module RubyCqrs
                                           :version => event.version,
                                           :data => try_encode(event) }
         end
+      end
+
+      def verify_state key, change
+        raise AggregateConcurrencyError.new("on aggregate #{key}")\
+          unless @aggregate_store[key][:version] == change[:expecting_source_version]
       end
 
       def try_encode event
