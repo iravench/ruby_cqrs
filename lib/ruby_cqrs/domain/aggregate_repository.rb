@@ -4,16 +4,9 @@ require_relative '../guid'
 module RubyCqrs
   class AggregateNotFound < Error; end
   class AggregateConcurrencyError < Error; end
-  class AggregateNotPersisted < Error; end
 
   module Domain
     class AggregateRepository
-      def initialize event_store, command_context
-        raise ArgumentError unless event_store.is_a? Data::EventStore
-        @event_store = event_store
-        @command_context = command_context
-      end
-
       def find_by aggregate_id
         raise ArgumentError if aggregate_id.nil?
         raise ArgumentError unless Guid.validate? aggregate_id
@@ -33,6 +26,12 @@ module RubyCqrs
       end
 
     private
+      def initialize event_store, command_context
+        raise ArgumentError unless event_store.is_a? Data::EventStore
+        @event_store = event_store
+        @command_context = command_context
+      end
+
       def create_instance_from aggregate_type_str, events
         instance = aggregate_type_str.constantize.new
         instance.send(:load_from, events)
