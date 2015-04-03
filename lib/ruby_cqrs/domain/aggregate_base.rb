@@ -14,40 +14,12 @@ module RubyCqrs
         @pending_events = []
       end
 
-      def raise_event(event)
-        apply(event)
-        update_dispatch_detail_for(event)
-        @pending_events << event
-      end
-
       def load_from events
         sorted_events = events.sort { |x, y| x.version <=> y.version }
         @aggregate_id = sorted_events[0].aggregate_id
         sorted_events.each do |event|
           apply(event)
           @source_version += 1
-        end
-      end
-
-      def apply(event)
-        dispatch_handler_for(event)
-        @version += 1
-      end
-
-      def dispatch_handler_for(event)
-        target = retrieve_handler_for(event.class)
-        self.send(target, event)
-      end
-
-      def update_dispatch_detail_for(event)
-        event.instance_variable_set(:@aggregate_id, @aggregate_id)
-        event.instance_variable_set(:@version, @version)
-      end
-
-      def retrieve_handler_for(event_type)
-        @event_handler_cache[event_type] ||= begin
-          stripped_event_type_name = event_type.to_s.demodulize.underscore
-          "on_#{stripped_event_type_name}".to_sym
         end
       end
 
@@ -65,6 +37,34 @@ module RubyCqrs
       def commit
         @pending_events = []
         @source_version = @version
+      end
+
+      def raise_event(event)
+        apply(event)
+        update_dispatch_detail_for(event)
+        @pending_events << event
+      end
+
+      def update_dispatch_detail_for(event)
+        event.instance_variable_set(:@aggregate_id, @aggregate_id)
+        event.instance_variable_set(:@version, @version)
+      end
+
+      def apply(event)
+        dispatch_handler_for(event)
+        @version += 1
+      end
+
+      def dispatch_handler_for(event)
+        target = retrieve_handler_for(event.class)
+        self.send(target, event)
+      end
+
+      def retrieve_handler_for(event_type)
+        @event_handler_cache[event_type] ||= begin
+          stripped_event_type_name = event_type.to_s.demodulize.underscore
+          "on_#{stripped_event_type_name}".to_sym
+        end
       end
     end
   end
