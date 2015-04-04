@@ -7,7 +7,7 @@ module RubyCqrs
     end
 
     def self.validate?(guid)
-      UUIDTools::UUID.parse_raw(guid).valid?
+      UUIDTools::UUID.parse(guid).valid?
     end
   end
 end
