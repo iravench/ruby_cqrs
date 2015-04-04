@@ -40,6 +40,7 @@ module RubyCqrs
       end
 
       def raise_event(event)
+        raise NotADomainEventError unless event.is_a? Event
         apply(event)
         update_dispatch_detail_for(event)
         @pending_events << event

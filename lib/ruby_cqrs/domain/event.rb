@@ -1,6 +1,8 @@
 module RubyCqrs
+  class NotADomainEventError < Error; end
+
   module Domain
-    class Event
+    module Event
       attr_reader :aggregate_id, :version
     end
   end

@@ -4,6 +4,10 @@ module SomeDomain
   class AggregateRoot
     include RubyCqrs::Domain::Aggregate
 
+    def fire_weird_stuff
+      raise_event Object.new
+    end
+
     def test_fire
       raise_event ThirdEvent.new(:id => 1, :name => 'some dude',\
                                  :phone => '13322244444', :note => 'good luck')
@@ -22,21 +26,24 @@ module SomeDomain
 
   AGGREGATE_ID = 'cbb688cc-d49a-11e4-9f39-3c15c2d13d4e'
 
-  class FirstEvent < RubyCqrs::Domain::Event
+  class FirstEvent
+    include RubyCqrs::Domain::Event
     def initialize
       @aggregate_id = AGGREGATE_ID
       @version = 1
     end
   end
 
-  class SecondEvent < RubyCqrs::Domain::Event
+  class SecondEvent
+    include RubyCqrs::Domain::Event
     def initialize
       @aggregate_id = AGGREGATE_ID
       @version = 2
     end
   end
 
-  class ThirdEvent < RubyCqrs::Domain::Event
+  class ThirdEvent
+    include RubyCqrs::Domain::Event
     include Beefcake::Message
 
     required :id,         :int32,   1
@@ -46,7 +53,8 @@ module SomeDomain
     optional :note,       :string,  4
   end
 
-  class ForthEvent < RubyCqrs::Domain::Event
+  class ForthEvent
+    include RubyCqrs::Domain::Event
     include Beefcake::Message
 
     required :order_id,   :int32,   1

@@ -20,6 +20,10 @@ describe RubyCqrs::Domain::Aggregate do
   end
 
   describe '#raise_event' do
+    it 'raise NotADomainEventError when raising an object that is not a proper event' do
+      expect { aggregate_root.fire_weird_stuff }.to raise_error(RubyCqrs::NotADomainEventError)
+    end
+
     context 'after raising an event' do
       it 'has version increased by 1' do
         original_version = aggregate_root.version
