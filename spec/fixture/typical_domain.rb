@@ -1,7 +1,9 @@
 require 'beefcake'
 
 module SomeDomain
-  class AggregateRoot < RubyCqrs::Domain::AggregateBase
+  class AggregateRoot
+    include RubyCqrs::Domain::Aggregate
+
     def test_fire
       raise_event ThirdEvent.new(:id => 1, :name => 'some dude',\
                                  :phone => '13322244444', :note => 'good luck')

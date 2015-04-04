@@ -19,7 +19,7 @@ module RubyCqrs
 
       def save one_or_many_aggregate
         raise ArgumentError if one_or_many_aggregate.nil?
-        return delegate_persistence_of [ one_or_many_aggregate ] if one_or_many_aggregate.is_a? AggregateBase
+        return delegate_persistence_of [ one_or_many_aggregate ] if one_or_many_aggregate.is_a? Aggregate
 
         raise ArgumentError unless one_or_many_aggregate.is_a? Enumerable and one_or_many_aggregate.size > 0
         delegate_persistence_of one_or_many_aggregate
@@ -52,7 +52,7 @@ module RubyCqrs
       def prep_changes_for aggregates
         to_return = []
         aggregates.inject(to_return) do |product, aggregate|
-          raise ArgumentError unless aggregate.is_a? AggregateBase
+          raise ArgumentError unless aggregate.is_a? Aggregate
           pending_changes = aggregate.send(:get_changes)
           next if pending_changes.nil?
           product << pending_changes

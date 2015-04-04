@@ -1,6 +1,6 @@
 require_relative('../spec_helper')
 
-describe RubyCqrs::Domain::AggregateBase do
+describe RubyCqrs::Domain::Aggregate do
   let(:aggregate_type) { SomeDomain::AggregateRoot }
   let(:aggregate_id) { SomeDomain::AGGREGATE_ID }
   let(:aggregate_root) { aggregate_type.new }

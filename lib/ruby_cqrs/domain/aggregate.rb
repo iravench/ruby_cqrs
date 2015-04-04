@@ -2,7 +2,7 @@ require 'active_support/inflector'
 
 module RubyCqrs
   module Domain
-    class AggregateBase
+    module Aggregate
       attr_reader :aggregate_id, :version, :source_version
 
     private
