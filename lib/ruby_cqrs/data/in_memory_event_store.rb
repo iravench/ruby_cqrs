@@ -1,8 +1,8 @@
-require 'beefcake'
-
 module RubyCqrs
   module Data
     class InMemoryEventStore < EventStore
+      include ProtobufableEvent
+
       def initialize
         @aggregate_store = {}
         @event_store = {}
@@ -10,7 +10,8 @@ module RubyCqrs
 
       def load_by guid, command_context
         key = guid.to_sym
-        [ @aggregate_store[key][:type], @event_store[key][:events].map { |event| try_decode event } ]
+        [ @aggregate_store[key][:type],
+          @event_store[key][:events].map { |event_record| try_decode event_record } ]
       end
 
       # notice there could be partial save here when verify_state raise an error
@@ -21,6 +22,7 @@ module RubyCqrs
           verify_state key, change
           update_aggregate key, change
         end
+        nil
       end
 
     private
@@ -34,7 +36,7 @@ module RubyCqrs
       def update_aggregate key, change
         @aggregate_store[key][:version] = change[:expecting_version]
         change[:events].each do |event|
-          @event_store[key][:events] << { :aggregate_id => event.aggregate_id,\
+          @event_store[key][:events] << { :aggregate_id => event.aggregate_id,
                                           :event_type => event.class.name,
                                           :version => event.version,
                                           :data => try_encode(event) }
@@ -44,19 +46,6 @@ module RubyCqrs
       def verify_state key, change
         raise AggregateConcurrencyError.new("on aggregate #{key}")\
           unless @aggregate_store[key][:version] == change[:expecting_source_version]
-      end
-
-      def try_encode event
-        return event.encode.to_s if event.is_a? Beefcake::Message
-        event
-      end
-
-      def try_decode event
-        return event[:data] if event[:data].is_a? RubyCqrs::Domain::Event
-        decoded_event = event[:event_type].constantize.decode event[:data]
-        decoded_event.instance_variable_set(:@aggregate_id, event[:aggregate_id])
-        decoded_event.instance_variable_set(:@version, event[:version])
-        decoded_event
       end
     end
   end

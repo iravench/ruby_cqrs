@@ -1,6 +1,5 @@
 require_relative('../spec_helper')
 
-# should event store's super class takes care of event serialization
 describe RubyCqrs::Data::InMemoryEventStore do
   let(:command_context) {}
   let(:event_store) { RubyCqrs::Data::InMemoryEventStore.new }

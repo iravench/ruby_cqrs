@@ -9,13 +9,11 @@ module SomeDomain
     end
 
     def test_fire
-      raise_event ThirdEvent.new(:id => 1, :name => 'some dude',\
-                                 :phone => '13322244444', :note => 'good luck')
+      raise_event THIRD_EVENT_INSTANCE
     end
 
     def test_fire_ag
-      raise_event ForthEvent.new(:order_id => 100, :price => 2000,\
-                                 :customer_id => 1, :note => 'sold!')
+      raise_event FORTH_EVENT_INSTANCE
     end
   private
     def on_first_event event; end
@@ -63,6 +61,12 @@ module SomeDomain
 
     optional :note,       :string,  4
   end
+
+  THIRD_EVENT_INSTANCE = ThirdEvent.new(:id => 1, :name => 'some dude',\
+                                        :phone => '13322244444', :note => 'good luck')
+
+  FORTH_EVENT_INSTANCE = ForthEvent.new(:order_id => 100, :price => 2000,\
+                                        :customer_id => 1, :note => 'sold!')
 
   SORTED_EVENTS = [FirstEvent.new, SecondEvent.new]
   UNSORTED_EVENTS = [SecondEvent.new, FirstEvent.new]
