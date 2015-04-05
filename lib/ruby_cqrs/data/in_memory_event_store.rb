@@ -47,7 +47,7 @@ module RubyCqrs
       end
 
       def try_encode event
-        return event.encode.to_s if event.class.include? Beefcake::Message
+        return event.encode.to_s if event.is_a? Beefcake::Message
         event
       end
 
