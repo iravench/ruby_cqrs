@@ -74,7 +74,7 @@ describe RubyCqrs::Domain::Aggregate do
     let(:unsorted_events) { SomeDomain::UNSORTED_EVENTS }
     let(:loaded_aggregate) { aggregate_root.send(:load_from, unsorted_events); aggregate_root; }
 
-    context 'when loading from 2 events' do
+    context 'when loading events' do
       after(:each) { aggregate_root.send(:load_from, unsorted_events) }
 
       it 'calls #on_first_event' do
@@ -91,17 +91,17 @@ describe RubyCqrs::Domain::Aggregate do
       end
     end
 
-    context 'after 2 events are loaded' do
+    context 'after events are loaded' do
       it "has aggregate_id set to the events' aggregate_id" do
         expect(loaded_aggregate.aggregate_id).to eq(aggregate_id)
       end
 
-      it 'has version set to 2' do
-        expect(loaded_aggregate.version).to eq 2
+      it 'has version set to the number of loaded events' do
+        expect(loaded_aggregate.version).to eq(unsorted_events.size)
       end
 
-      it 'has source_version set to 2' do
-        expect(loaded_aggregate.source_version).to eq 2
+      it 'has source_version set to the number of loaded events' do
+        expect(loaded_aggregate.source_version).to eq(unsorted_events.size)
       end
     end
   end
