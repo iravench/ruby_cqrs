@@ -18,14 +18,18 @@ module RubyCqrs
       def load_from state
         sorted_events = state[:events].sort { |x, y| x.version <=> y.version }
         @aggregate_id = state[:aggregate_id]
+        try_apply_snapshot state
+        sorted_events.each do |event|
+          apply(event)
+          @source_version += 1
+        end
+      end
+
+      def try_apply_snapshot state
         if state.has_key? :snapshot
           self.send :apply_snapshot, state[:snapshot][:state] if self.is_a? Snapshotable
           @version = state[:snapshot][:version]
           @source_version = state[:snapshot][:version]
-        end
-        sorted_events.each do |event|
-          apply(event)
-          @source_version += 1
         end
       end
 
@@ -39,10 +43,14 @@ module RubyCqrs
           :expecting_version => @pending_events.max\
           { |a, b| a.version <=> b.version }.version
         }
+        try_extract_snapshot_into changes
+        changes
+      end
+
+      def try_extract_snapshot_into changes
         snapshot_state = self.send :take_a_snapshot\
           if self.is_a? Snapshotable and self.send(:should_take_a_snapshot?)
         changes[:snapshot] = { :state => snapshot_state, :version => @version } unless snapshot_state.nil?
-        changes
       end
 
       def commit
