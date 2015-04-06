@@ -10,8 +10,8 @@ module RubyCqrs
 
       def load_by guid, command_context
         key = guid.to_sym
-        [ @aggregate_store[key][:type],
-          @event_store[key][:events].map { |event_record| try_decode event_record } ]
+        { :aggregate_type => @aggregate_store[key][:type],
+          :events => @event_store[key][:events].map { |event_record| try_decode event_record } }
       end
 
       # notice there could be partial save here when verify_state raise an error

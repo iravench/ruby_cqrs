@@ -2,7 +2,8 @@ require_relative('../spec_helper')
 
 describe RubyCqrs::Domain::AggregateRepository do
   let(:unsorted_events) { SomeDomain::UNSORTED_EVENTS }
-  let(:event_store_load_result) { ['SomeDomain::AggregateRoot', unsorted_events] }
+  let(:event_store_load_result) { { :aggregate_type => 'SomeDomain::AggregateRoot',
+                                    :events => unsorted_events } }
   let(:event_store) do
     _event_store = RubyCqrs::Data::EventStore.new
     allow(_event_store).to receive(:load_by).and_return(event_store_load_result)

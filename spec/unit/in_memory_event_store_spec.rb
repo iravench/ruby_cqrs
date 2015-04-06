@@ -25,32 +25,30 @@ describe RubyCqrs::Data::InMemoryEventStore do
   describe '#load & #save' do
     it 'saves a new aggregate then is able to load the corret data back' do
       repository.save new_aggregate
-      loaded_type_str, loaded_events = event_store.load_by\
-        new_aggregate.aggregate_id, command_context
+      state = event_store.load_by new_aggregate.aggregate_id, command_context
 
-      expect(loaded_type_str).to eq(aggregate_type_str)
-      expect(loaded_events.size).to eq(2)
-      expect(loaded_events[0].version).to eq(1)
-      expect(loaded_events[0].aggregate_id).to eq(new_aggregate.aggregate_id)
-      expect(loaded_events[1].version).to eq(2)
-      expect(loaded_events[1].aggregate_id).to eq(new_aggregate.aggregate_id)
+      expect(state[:aggregate_type]).to eq(aggregate_type_str)
+      expect(state[:events].size).to eq(2)
+      expect(state[:events][0].version).to eq(1)
+      expect(state[:events][0].aggregate_id).to eq(new_aggregate.aggregate_id)
+      expect(state[:events][1].version).to eq(2)
+      expect(state[:events][1].aggregate_id).to eq(new_aggregate.aggregate_id)
     end
 
     it 'saves an existing aggregate then is able to load the corret data back' do
       repository.save old_aggregate
-      loaded_type_str, loaded_events = event_store.load_by\
-        old_aggregate.aggregate_id, command_context
+      state = event_store.load_by old_aggregate.aggregate_id, command_context
 
-      expect(loaded_type_str).to eq(aggregate_type_str)
-      expect(loaded_events.size).to eq(4)
-      expect(loaded_events[0].version).to eq(1)
-      expect(loaded_events[0].aggregate_id).to eq(old_aggregate.aggregate_id)
-      expect(loaded_events[1].version).to eq(2)
-      expect(loaded_events[1].aggregate_id).to eq(old_aggregate.aggregate_id)
-      expect(loaded_events[2].version).to eq(3)
-      expect(loaded_events[2].aggregate_id).to eq(old_aggregate.aggregate_id)
-      expect(loaded_events[3].version).to eq(4)
-      expect(loaded_events[3].aggregate_id).to eq(old_aggregate.aggregate_id)
+      expect(state[:aggregate_type]).to eq(aggregate_type_str)
+      expect(state[:events].size).to eq(4)
+      expect(state[:events][0].version).to eq(1)
+      expect(state[:events][0].aggregate_id).to eq(old_aggregate.aggregate_id)
+      expect(state[:events][1].version).to eq(2)
+      expect(state[:events][1].aggregate_id).to eq(old_aggregate.aggregate_id)
+      expect(state[:events][2].version).to eq(3)
+      expect(state[:events][2].aggregate_id).to eq(old_aggregate.aggregate_id)
+      expect(state[:events][3].version).to eq(4)
+      expect(state[:events][3].aggregate_id).to eq(old_aggregate.aggregate_id)
     end
 
     it 'raise concurrency error when attempting to save more than one aggregate instances start from the same state' do
