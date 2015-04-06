@@ -3,6 +3,12 @@ require 'beefcake'
 module SomeDomain
   class AggregateRoot
     include RubyCqrs::Domain::Aggregate
+    include RubyCqrs::Domain::Snapshotable
+
+    def initialize
+      @state = 0
+      super
+    end
 
     def fire_weird_stuff
       raise_event Object.new
@@ -15,11 +21,25 @@ module SomeDomain
     def test_fire_ag
       raise_event FORTH_EVENT_INSTANCE
     end
+
+    def take_a_snapshot
+      Snapshot.new(:state => @state)
+    end
+
+    def apply_snapshot snapshot_object
+      @state = snapshot_object.state
+    end
   private
-    def on_first_event event; end
-    def on_second_event event; end
-    def on_third_event event; end
-    def on_forth_event event; end
+    def on_first_event event; @state += 1; end
+    def on_second_event event; @state += 1; end
+    def on_third_event event; @state += 1; end
+    def on_forth_event event; @state += 1; end
+  end
+
+  class Snapshot
+    include Beefcake::Message
+
+    required :state,      :int32, 1
   end
 
   AGGREGATE_ID = 'cbb688cc-d49a-11e4-9f39-3c15c2d13d4e'

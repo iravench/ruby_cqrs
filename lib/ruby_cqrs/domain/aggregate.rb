@@ -12,6 +12,7 @@ module RubyCqrs
         @source_version = 0
         @event_handler_cache = {}
         @pending_events = []
+        super
       end
 
       def load_from events
@@ -25,13 +26,17 @@ module RubyCqrs
 
       def get_changes
         return nil unless @pending_events.size > 0
-        { :events => @pending_events,
+        changes = {
+          :events => @pending_events,
           :aggregate_id => @aggregate_id,
           :aggregate_type => self.class.name,
           :expecting_source_version => @source_version,
           :expecting_version => @pending_events.max\
           { |a, b| a.version <=> b.version }.version
         }
+        changes[:snapshot] = self.take_a_snapshot if self.is_a? Snapshotable\
+          and self.send(:should_take_a_snapshot?) and self.respond_to? :take_a_snapshot
+        changes
       end
 
       def commit
@@ -53,6 +58,7 @@ module RubyCqrs
 
       def apply(event)
         dispatch_handler_for(event)
+        self.send(:snapshot_countdown) if self.is_a? Snapshotable
         @version += 1
       end
 

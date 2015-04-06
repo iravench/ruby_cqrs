@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
 
   s.files             = `git ls-files -- lib/*`.split("\n")
   s.files            += ["License.txt"]
-  s.test_files        = `git ls-files -- {spec,features}/*`.split("\n")
+  s.test_files        = `git ls-files -- spec/*`.split("\n")
   s.executables       = `git ls-files -- bin/*`.split("\n").map{ |f| File.basename(f) }
   s.extra_rdoc_files  = [ "README.md" ]
   s.rdoc_options      = ["--charset=UTF-8"]
