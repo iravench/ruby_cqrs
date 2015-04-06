@@ -2,7 +2,9 @@ require_relative('../spec_helper')
 
 describe RubyCqrs::Domain::AggregateRepository do
   let(:unsorted_events) { SomeDomain::UNSORTED_EVENTS }
-  let(:event_store_load_result) { { :aggregate_type => 'SomeDomain::AggregateRoot',
+  let(:aggregate_id) { SomeDomain::AGGREGATE_ID }
+  let(:event_store_load_result) { { :aggregate_id => aggregate_id,
+                                    :aggregate_type => 'SomeDomain::AggregateRoot',
                                     :events => unsorted_events } }
   let(:event_store) do
     _event_store = RubyCqrs::Data::EventStore.new
@@ -12,7 +14,6 @@ describe RubyCqrs::Domain::AggregateRepository do
   let(:command_context) { Object.new }
   let(:repository) { RubyCqrs::Domain::AggregateRepository.new event_store, command_context }
   let(:aggregate_type) { SomeDomain::AggregateRoot }
-  let(:aggregate_id) { SomeDomain::AGGREGATE_ID }
 
   describe '#new' do
     context 'when expecting arguments' do

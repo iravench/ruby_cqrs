@@ -5,6 +5,8 @@ module SomeDomain
     include RubyCqrs::Domain::Aggregate
     include RubyCqrs::Domain::Snapshotable
 
+    attr_reader :state
+
     def initialize
       @state = 0
       super

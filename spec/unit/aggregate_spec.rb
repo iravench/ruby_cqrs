@@ -72,10 +72,11 @@ describe RubyCqrs::Domain::Aggregate do
 
   describe '#load_from' do
     let(:unsorted_events) { SomeDomain::UNSORTED_EVENTS }
-    let(:loaded_aggregate) { aggregate_root.send(:load_from, unsorted_events); aggregate_root; }
+    let(:state) { { :aggregate_id => aggregate_id, :events => unsorted_events } }
+    let(:loaded_aggregate) { aggregate_root.send(:load_from, state); aggregate_root; }
 
     context 'when loading events' do
-      after(:each) { aggregate_root.send(:load_from, unsorted_events) }
+      after(:each) { aggregate_root.send(:load_from, state) }
 
       it 'calls #on_first_event' do
         expect(aggregate_root).to receive(:on_first_event)

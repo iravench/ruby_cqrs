@@ -13,9 +13,9 @@ module RubyCqrs
 
         state = @event_store.load_by(aggregate_id, @command_context)
         raise AggregateNotFound if (state.nil? or state[:aggregate_type].nil? or\
-                                    state[:events].nil? or state[:events].empty?)
+                                    ((state[:events].nil? or state[:events].empty?) and state[:snapshot].nil?))
 
-        create_instance_from state[:aggregate_type], state[:events]
+        create_instance_from state
       end
 
       def save one_or_many_aggregate
@@ -33,9 +33,9 @@ module RubyCqrs
         @command_context = command_context
       end
 
-      def create_instance_from aggregate_type_str, events
-        instance = aggregate_type_str.constantize.new
-        instance.send(:load_from, events)
+      def create_instance_from state
+        instance = state[:aggregate_type].constantize.new
+        instance.send(:load_from, state)
         instance
       end
 

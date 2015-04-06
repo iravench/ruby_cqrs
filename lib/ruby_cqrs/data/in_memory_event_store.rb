@@ -6,12 +6,26 @@ module RubyCqrs
       def initialize
         @aggregate_store = {}
         @event_store = {}
+        @snapshot_store = {}
       end
 
       def load_by guid, command_context
         key = guid.to_sym
-        { :aggregate_type => @aggregate_store[key][:type],
-          :events => @event_store[key][:events].map { |event_record| try_decode event_record } }
+        if @snapshot_store.has_key? key
+          start_version = @snapshot_store[key][:version]
+          { :aggregate_id => guid.to_s,
+            :aggregate_type => @aggregate_store[key][:type],
+            :events => @event_store[key][:events]\
+              .select { |event_record| event_record[:version] > start_version }\
+              .map { |event_record| try_decode event_record },
+            :snapshot => @snapshot_store[key]
+          }
+        else
+          { :aggregate_id => guid,
+            :aggregate_type => @aggregate_store[key][:type],
+            :events => @event_store[key][:events].map { |event_record| try_decode event_record }
+          }
+        end
       end
 
       # notice there could be partial save here when verify_state raise an error
@@ -27,10 +41,9 @@ module RubyCqrs
 
     private
       def create_aggregate key, change
-        @aggregate_store[key] = {
-          :type => change[:aggregate_type],
-          :version => 0 }
+        @aggregate_store[key] = { :type => change[:aggregate_type], :version => 0 }
         @event_store[key] = { :events => [] }
+        @snapshot_store[key] = {} unless change[:snapshot].nil?
       end
 
       def update_aggregate key, change
@@ -41,6 +54,8 @@ module RubyCqrs
                                           :version => event.version,
                                           :data => try_encode(event) }
         end
+        @snapshot_store[key][:state] = change[:snapshot][:state] unless change[:snapshot].nil?
+        @snapshot_store[key][:version] = change[:snapshot][:version] unless change[:snapshot].nil?
       end
 
       def verify_state key, change
