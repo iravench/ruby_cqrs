@@ -11,21 +11,20 @@ module RubyCqrs
 
       def load_by guid, command_context
         key = guid.to_sym
+        state = { :aggregate_id => guid,
+                  :aggregate_type => @aggregate_store[key][:type] }
+
         if @snapshot_store.has_key? key
           start_version = @snapshot_store[key][:version]
-          { :aggregate_id => guid.to_s,
-            :aggregate_type => @aggregate_store[key][:type],
-            :events => @event_store[key][:events]\
-              .select { |event_record| event_record[:version] > start_version }\
-              .map { |event_record| try_decode event_record },
-            :snapshot => @snapshot_store[key]
-          }
+          state[:events] = @event_store[key][:events]\
+            .select { |event_record| event_record[:version] > start_version }\
+            .map { |event_record| try_decode event_record }
+          state[:snapshot] = @snapshot_store[key]
         else
-          { :aggregate_id => guid,
-            :aggregate_type => @aggregate_store[key][:type],
-            :events => @event_store[key][:events].map { |event_record| try_decode event_record }
-          }
+          state[:events] = @event_store[key][:events].map { |event_record| try_decode event_record }
         end
+
+        state
       end
 
       # notice there could be partial save here when verify_state raise an error
@@ -48,14 +47,18 @@ module RubyCqrs
 
       def update_aggregate key, change
         @aggregate_store[key][:version] = change[:expecting_version]
+
         change[:events].each do |event|
           @event_store[key][:events] << { :aggregate_id => event.aggregate_id,
                                           :event_type => event.class.name,
                                           :version => event.version,
                                           :data => try_encode(event) }
         end
-        @snapshot_store[key][:state] = change[:snapshot][:state] unless change[:snapshot].nil?
-        @snapshot_store[key][:version] = change[:snapshot][:version] unless change[:snapshot].nil?
+
+        unless change[:snapshot].nil?
+          @snapshot_store[key][:state] = change[:snapshot][:state]
+          @snapshot_store[key][:version] = change[:snapshot][:version]
+        end
       end
 
       def verify_state key, change
