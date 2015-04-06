@@ -34,8 +34,8 @@ module RubyCqrs
           :expecting_version => @pending_events.max\
           { |a, b| a.version <=> b.version }.version
         }
-        changes[:snapshot] = self.take_a_snapshot if self.is_a? Snapshotable\
-          and self.send(:should_take_a_snapshot?) and self.respond_to? :take_a_snapshot
+        changes[:snapshot] = self.send :take_a_snapshot if self.is_a? Snapshotable\
+          and self.send(:should_take_a_snapshot?) and self.respond_to? :take_a_snapshot, true
         changes
       end
 

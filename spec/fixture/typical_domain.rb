@@ -22,6 +22,12 @@ module SomeDomain
       raise_event FORTH_EVENT_INSTANCE
     end
 
+  private
+    def on_first_event event; @state += 1; end
+    def on_second_event event; @state += 1; end
+    def on_third_event event; @state += 1; end
+    def on_forth_event event; @state += 1; end
+
     def take_a_snapshot
       Snapshot.new(:state => @state)
     end
@@ -29,11 +35,6 @@ module SomeDomain
     def apply_snapshot snapshot_object
       @state = snapshot_object.state
     end
-  private
-    def on_first_event event; @state += 1; end
-    def on_second_event event; @state += 1; end
-    def on_third_event event; @state += 1; end
-    def on_forth_event event; @state += 1; end
   end
 
   class Snapshot
