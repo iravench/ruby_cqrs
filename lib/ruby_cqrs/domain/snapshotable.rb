@@ -3,6 +3,7 @@ module RubyCqrs
     module Snapshotable
       def initialize
         @countdown_threshold = 30
+        @reset_snapshot_countdown_flag = false
         super
       end
 
@@ -17,6 +18,15 @@ module RubyCqrs
 
       def reset_countdown loaded_event_count
         @countdown_threshold = 30 - loaded_event_count
+        @reset_snapshot_countdown_flag = false
+      end
+
+      def should_reset_snapshot_countdown?
+        @reset_snapshot_countdown_flag
+      end
+
+      def set_snapshot_taken
+        @reset_snapshot_countdown_flag = true
       end
 
       # the including domain object should implement these two methods

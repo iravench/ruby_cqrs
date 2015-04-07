@@ -12,7 +12,6 @@ module RubyCqrs
         @source_version = 0
         @event_handler_cache = {}
         @pending_events = []
-        @should_reset_snapshot_countdown = false
         super
       end
 
@@ -54,16 +53,15 @@ module RubyCqrs
           if self.is_a? Snapshotable and self.send(:should_take_a_snapshot?)
         unless snapshot_state.nil?
           changes[:snapshot] = { :state => snapshot_state, :version => @version }
-          @should_reset_snapshot_countdown = true
+          self.send :set_snapshot_taken
         end
       end
 
       def commit
         @pending_events = []
         @source_version = @version
-        if @should_reset_snapshot_countdown and self.is_a? Snapshotable
+        if self.is_a? Snapshotable and self.send :should_reset_snapshot_countdown?
           self.send(:reset_countdown, 0)
-          @should_reset_snapshot_countdown = false
         end
       end
 
