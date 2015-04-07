@@ -41,6 +41,7 @@ module SomeDomain
 
   class Snapshot
     include Beefcake::Message
+    include RubyCqrs::Data::Encodable
 
     required :state,      :int32, 1
   end
@@ -49,6 +50,8 @@ module SomeDomain
 
   class FirstEvent
     include RubyCqrs::Domain::Event
+    include RubyCqrs::Data::Encodable
+
     def initialize
       @aggregate_id = AGGREGATE_ID
       @version = 1
@@ -57,6 +60,8 @@ module SomeDomain
 
   class SecondEvent
     include RubyCqrs::Domain::Event
+    include RubyCqrs::Data::Encodable
+
     def initialize
       @aggregate_id = AGGREGATE_ID
       @version = 2
@@ -66,6 +71,7 @@ module SomeDomain
   class ThirdEvent
     include RubyCqrs::Domain::Event
     include Beefcake::Message
+    include RubyCqrs::Data::Encodable
 
     required :id,         :int32,   1
     required :name,       :string,  2
@@ -77,6 +83,7 @@ module SomeDomain
   class ForthEvent
     include RubyCqrs::Domain::Event
     include Beefcake::Message
+    include RubyCqrs::Data::Encodable
 
     required :order_id,   :int32,   1
     required :price,      :int32,   2

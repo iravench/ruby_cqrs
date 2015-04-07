@@ -1,7 +1,7 @@
 module RubyCqrs
   module Data
     class InMemoryEventStore < EventStore
-      include ProtobufableEvent
+      include Decodable
 
       def initialize
         @aggregate_store = {}
@@ -15,13 +15,16 @@ module RubyCqrs
                   :aggregate_type => @aggregate_store[key][:type] }
 
         if @snapshot_store.has_key? key
-          start_version = @snapshot_store[key][:version]
+          snapshot_version = @snapshot_store[key][:version]
           state[:events] = @event_store[key][:events]\
-            .select { |event_record| event_record[:version] > start_version }\
-            .map { |event_record| try_decode event_record }
-          state[:snapshot] = @snapshot_store[key]
+            .select { |event_record| event_record[:version] > snapshot_version }\
+            .map { |event_record| decode_event_from event_record }
+          snapshot_state = decode_snapshot_state_from @snapshot_store[key]
+          state[:snapshot] = { :state => snapshot_state,
+                               :version => snapshot_version }
         else
-          state[:events] = @event_store[key][:events].map { |event_record| try_decode event_record }
+          state[:events] = @event_store[key][:events]\
+            .map { |event_record| decode_event_from event_record }
         end
 
         state
@@ -49,14 +52,17 @@ module RubyCqrs
         @aggregate_store[key][:version] = change[:expecting_version]
 
         change[:events].each do |event|
+          data = encode_data_from event
           @event_store[key][:events] << { :aggregate_id => event.aggregate_id,
                                           :event_type => event.class.name,
                                           :version => event.version,
-                                          :data => try_encode(event) }
+                                          :data => data }
         end
 
         unless change[:snapshot].nil?
-          @snapshot_store[key][:state] = change[:snapshot][:state]
+          data = encode_data_from change[:snapshot][:state]
+          @snapshot_store[key][:state] = data
+          @snapshot_store[key][:state_type] = change[:snapshot][:state_type]
           @snapshot_store[key][:version] = change[:snapshot][:version]
         end
       end
@@ -64,6 +70,23 @@ module RubyCqrs
       def verify_state key, change
         raise AggregateConcurrencyError.new("on aggregate #{key}")\
           unless @aggregate_store[key][:version] == change[:expecting_source_version]
+      end
+
+      def decode_event_from event_record
+        decoded_event = try_decode event_record[:event_type], event_record[:data]
+        decoded_event.instance_variable_set(:@aggregate_id, event_record[:aggregate_id])
+        decoded_event.instance_variable_set(:@version, event_record[:version])
+        decoded_event
+      end
+
+      def decode_snapshot_state_from snapshot_record
+        try_decode snapshot_record[:state_type], snapshot_record[:state]
+      end
+
+      def encode_data_from obj
+        data = obj
+        data = data.try_encode if data.is_a? Encodable
+        data
       end
     end
   end
