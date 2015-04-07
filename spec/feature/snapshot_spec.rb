@@ -18,21 +18,21 @@ describe 'snapshot feature' do
     expect(changes[:snapshot]).to_not be_nil
   end
 
-  it 'saves and is able to load the correct aggregate back with 1 snapshot taken(30 events)' do
+  it 'saves and is able to load the correct aggregate back(30 events)' do
     (1..30).each { |x| aggregate.test_fire }
     repository.save aggregate
     loaded_aggregate = repository.find_by aggregate.aggregate_id
     expect(loaded_aggregate.state).to eq(30)
   end
 
-  it 'saves and is able to load the correct aggregate back with 1 snapshot taken(60 events)' do
+  it 'saves and is able to load the correct aggregate back(60 events)' do
     (1..60).each { |x| aggregate.test_fire }
     repository.save aggregate
     loaded_aggregate = repository.find_by aggregate.aggregate_id
     expect(loaded_aggregate.state).to eq(60)
   end
 
-  it 'saves and is able to load the correct aggregate back with 1 snapshot taken(45 events)' do
+  it 'saves and is able to load the correct aggregate back(45 events)' do
     (1..30).each { |x| aggregate.test_fire }
     repository.save aggregate
     loaded_aggregate = repository.find_by aggregate.aggregate_id
@@ -44,7 +44,7 @@ describe 'snapshot feature' do
     expect(loaded_aggregate.state).to eq(45)
   end
 
-  it 'saves and is able to load the correct aggregate back with 1 snapshot taken(45 events), without reloading aggregate' do
+  it 'saves and is able to load the correct aggregate back(45 events), without reloading aggregate' do
     (1..30).each { |x| aggregate.test_fire }
     repository.save aggregate
     expect(aggregate.state).to eq(30)
@@ -57,7 +57,7 @@ describe 'snapshot feature' do
     expect(loaded_aggregate.state).to eq(45)
   end
 
-  it 'saves and is able to load the correct aggregate back with 2 snapshots taken(60 events)' do
+  it 'saves and is able to load the correct aggregate back(60 events)' do
     (1..30).each { |x| aggregate.test_fire }
     repository.save aggregate
     loaded_aggregate = repository.find_by aggregate.aggregate_id
@@ -69,7 +69,7 @@ describe 'snapshot feature' do
     expect(loaded_aggregate.state).to eq(60)
   end
 
-  it 'saves and is able to load the correct aggregate back with 2 snapshots taken(75 events)' do
+  it 'saves and is able to load the correct aggregate back(75 events)' do
     (1..30).each { |x| aggregate.test_fire }
     repository.save aggregate
     loaded_aggregate = repository.find_by aggregate.aggregate_id
