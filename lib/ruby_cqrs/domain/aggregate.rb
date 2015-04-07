@@ -18,16 +18,16 @@ module RubyCqrs
       def load_from state
         sorted_events = state[:events].sort { |x, y| x.version <=> y.version }
         @aggregate_id = state[:aggregate_id]
-        try_apply_snapshot state
+        try_load_snapshot_from state
         sorted_events.each do |event|
           apply(event)
           @source_version += 1
         end
       end
 
-      def try_apply_snapshot state
-        if state.has_key? :snapshot
-          self.send :apply_snapshot, state[:snapshot][:state] if self.is_a? Snapshotable
+      def try_load_snapshot_from state
+        if state.has_key? :snapshot and self.is_a? Snapshotable
+          self.send :apply_snapshot, state[:snapshot][:state]
           @version = state[:snapshot][:version]
           @source_version = state[:snapshot][:version]
         end

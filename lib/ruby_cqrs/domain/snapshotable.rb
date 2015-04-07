@@ -15,12 +15,13 @@ module RubyCqrs
         @countdown_threshold-= 1
       end
 
+      # the including domain object should implement these two methods
       def take_a_snapshot
-        raise NotImplementedError.new 'implment take_a_snapshot method in your aggregate'
+        raise NotImplementedError
       end
 
       def apply_snapshot snapshot_object
-        raise NotImplementedError.new 'implment apply_snapshot method in your aggregate'
+        raise NotImplementedError
       end
     end
   end
