@@ -15,6 +15,10 @@ module RubyCqrs
         @countdown_threshold-= 1
       end
 
+      def reset_countdown loaded_event_count
+        @countdown_threshold = 30 - loaded_event_count
+      end
+
       # the including domain object should implement these two methods
       def take_a_snapshot
         raise NotImplementedError

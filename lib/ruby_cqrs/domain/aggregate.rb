@@ -12,6 +12,7 @@ module RubyCqrs
         @source_version = 0
         @event_handler_cache = {}
         @pending_events = []
+        @should_reset_snapshot_countdown = false
         super
       end
 
@@ -30,6 +31,7 @@ module RubyCqrs
           self.send :apply_snapshot, state[:snapshot][:state]
           @version = state[:snapshot][:version]
           @source_version = state[:snapshot][:version]
+          self.send(:reset_countdown, state[:events].size)
         end
       end
 
@@ -50,12 +52,19 @@ module RubyCqrs
       def try_extract_snapshot_into changes
         snapshot_state = self.send :take_a_snapshot\
           if self.is_a? Snapshotable and self.send(:should_take_a_snapshot?)
-        changes[:snapshot] = { :state => snapshot_state, :version => @version } unless snapshot_state.nil?
+        unless snapshot_state.nil?
+          changes[:snapshot] = { :state => snapshot_state, :version => @version }
+          @should_reset_snapshot_countdown = true
+        end
       end
 
       def commit
         @pending_events = []
         @source_version = @version
+        if @should_reset_snapshot_countdown and self.is_a? Snapshotable
+          self.send(:reset_countdown, 0)
+          @should_reset_snapshot_countdown = false
+        end
       end
 
       def raise_event(event)

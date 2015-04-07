@@ -21,10 +21,50 @@ describe RubyCqrs::Data::InMemoryEventStore do
     aggregate_root.test_fire_ag
     aggregate_root
   }
-  let(:snapshot_aggregate) {
+  let(:snapshot_aggregate_30) {
     aggregate_root = aggregate_type.new
     (1..30).each { |x| aggregate_root.test_fire }
-    aggregate_root
+    repository.save aggregate_root
+    repository.find_by aggregate_root.aggregate_id
+  }
+  let(:snapshot_aggregate_60) {
+    aggregate_root = aggregate_type.new
+    (1..60).each { |x| aggregate_root.test_fire }
+    repository.save aggregate_root
+    repository.find_by aggregate_root.aggregate_id
+  }
+  let(:snapshot_aggregate_45) {
+    aggregate_root = aggregate_type.new
+    (1..30).each { |x| aggregate_root.test_fire }
+    repository.save aggregate_root
+    aggregate_root = repository.find_by aggregate_root.aggregate_id
+    (1..15).each { |x| aggregate_root.test_fire }
+    repository.save aggregate_root
+    repository.find_by aggregate_root.aggregate_id
+  }
+  let(:snapshot_twice_aggregate) {
+    aggregate_root = aggregate_type.new
+    (1..30).each { |x| aggregate_root.test_fire }
+    repository.save aggregate_root
+    aggregate_root = repository.find_by aggregate_root.aggregate_id
+    (1..30).each { |x| aggregate_root.test_fire }
+    repository.save aggregate_root
+    repository.find_by aggregate_root.aggregate_id
+  }
+  let(:snapshot_twice_aggregate_75) {
+    aggregate_root = aggregate_type.new
+    (1..30).each { |x| aggregate_root.test_fire }
+    repository.save aggregate_root
+    aggregate_root = repository.find_by aggregate_root.aggregate_id
+    (1..15).each { |x| aggregate_root.test_fire }
+    repository.save aggregate_root
+    aggregate_root = repository.find_by aggregate_root.aggregate_id
+    (1..15).each { |x| aggregate_root.test_fire }
+    repository.save aggregate_root
+    aggregate_root = repository.find_by aggregate_root.aggregate_id
+    (1..15).each { |x| aggregate_root.test_fire }
+    repository.save aggregate_root
+    aggregate_root = repository.find_by aggregate_root.aggregate_id
   }
 
   describe '#load & #save' do
@@ -56,15 +96,54 @@ describe RubyCqrs::Data::InMemoryEventStore do
       expect(state[:events][3].aggregate_id).to eq(old_aggregate.aggregate_id)
     end
 
-    it 'saves a snapshot aggregate then is able to load the correct data back' do
-      repository.save snapshot_aggregate
-      state = event_store.load_by snapshot_aggregate.aggregate_id, command_context
+    it 'saves and is able to load the correct aggregate back with 1 snapshot taken(30 events)' do
+      state = event_store.load_by snapshot_aggregate_30.aggregate_id, command_context
 
-      expect(state[:aggregate_id]).to eq(snapshot_aggregate.aggregate_id)
+      expect(state[:aggregate_id]).to eq(snapshot_aggregate_30.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_type_str)
       expect(state[:events].size).to eq(0)
       expect(state[:snapshot][:state]).to_not be_nil
       expect(state[:snapshot][:version]).to be(30)
+    end
+
+    it 'saves and is able to load the correct aggregate back with 1 snapshot taken(60 events)' do
+      state = event_store.load_by snapshot_aggregate_60.aggregate_id, command_context
+
+      expect(state[:aggregate_id]).to eq(snapshot_aggregate_60.aggregate_id)
+      expect(state[:aggregate_type]).to eq(aggregate_type_str)
+      expect(state[:events].size).to eq(0)
+      expect(state[:snapshot][:state]).to_not be_nil
+      expect(state[:snapshot][:version]).to be(60)
+    end
+
+    it 'saves and is able to load the correct aggregate back with 1 snapshot taken(45 events)' do
+      state = event_store.load_by snapshot_aggregate_45.aggregate_id, command_context
+
+      expect(state[:aggregate_id]).to eq(snapshot_aggregate_45.aggregate_id)
+      expect(state[:aggregate_type]).to eq(aggregate_type_str)
+      expect(state[:events].size).to eq(15)
+      expect(state[:snapshot][:state]).to_not be_nil
+      expect(state[:snapshot][:version]).to be(30)
+    end
+
+    it 'saves and is able to load the correct aggregate back with 2 snapshots taken(60 events)' do
+      state = event_store.load_by snapshot_twice_aggregate.aggregate_id, command_context
+
+      expect(state[:aggregate_id]).to eq(snapshot_twice_aggregate.aggregate_id)
+      expect(state[:aggregate_type]).to eq(aggregate_type_str)
+      expect(state[:events].size).to eq(0)
+      expect(state[:snapshot][:state]).to_not be_nil
+      expect(state[:snapshot][:version]).to be(60)
+    end
+
+    it 'saves and is able to load the correct aggregate back with 2 snapshots taken(75 events)' do
+      state = event_store.load_by snapshot_twice_aggregate_75.aggregate_id, command_context
+
+      expect(state[:aggregate_id]).to eq(snapshot_twice_aggregate_75.aggregate_id)
+      expect(state[:aggregate_type]).to eq(aggregate_type_str)
+      expect(state[:events].size).to eq(15)
+      expect(state[:snapshot][:state]).to_not be_nil
+      expect(state[:snapshot][:version]).to be(60)
     end
 
     it 'raise concurrency error when attempting to save more than one aggregate instances start from the same state' do
