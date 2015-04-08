@@ -5,6 +5,8 @@ module SomeDomain
     include RubyCqrs::Domain::Aggregate
     include RubyCqrs::Domain::Snapshotable
 
+    #SNAPSHOT_THRESHOLD = 40
+
     attr_reader :state
 
     def initialize
@@ -29,6 +31,35 @@ module SomeDomain
     def on_second_event event; @state += 1; end
     def on_third_event event; @state += 1; end
     def on_forth_event event; @state += 1; end
+
+    def take_a_snapshot
+      Snapshot.new(:state => @state)
+    end
+
+    def apply_snapshot snapshot_object
+      @state = snapshot_object.state
+    end
+  end
+
+  class AggregateRoot45Snapshot
+    include RubyCqrs::Domain::Aggregate
+    include RubyCqrs::Domain::Snapshotable
+
+    SNAPSHOT_THRESHOLD = 45
+
+    attr_reader :state
+
+    def initialize
+      @state = 0
+      super
+    end
+
+    def test_fire
+      raise_event THIRD_EVENT_INSTANCE
+    end
+
+  private
+    def on_third_event event; @state += 1; end
 
     def take_a_snapshot
       Snapshot.new(:state => @state)

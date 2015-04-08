@@ -2,22 +2,28 @@ module RubyCqrs
   module Domain
     module Snapshotable
       def initialize
-        @countdown_threshold = 30
+        if self.class.const_defined? :SNAPSHOT_THRESHOLD
+          @snapshot_threshold = self.class.const_get(:SNAPSHOT_THRESHOLD)
+        else
+          @snapshot_threshold = 30
+        end
+        @snapshot_threshold = 30 if @snapshot_threshold <= 0
+        @countdown = @snapshot_threshold
         @reset_snapshot_countdown_flag = false
         super
       end
 
     private
       def should_take_a_snapshot?
-        @countdown_threshold <= 0
+        @countdown <= 0
       end
 
       def snapshot_countdown
-        @countdown_threshold-= 1
+        @countdown -= 1
       end
 
       def reset_countdown loaded_event_count
-        @countdown_threshold = 30 - loaded_event_count
+        @countdown = @snapshot_threshold - loaded_event_count
         @reset_snapshot_countdown_flag = false
       end
 
