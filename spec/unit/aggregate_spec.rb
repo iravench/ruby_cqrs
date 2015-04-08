@@ -15,7 +15,7 @@ describe RubyCqrs::Domain::Aggregate do
     end
 
     it 'has source_version initilized as 0' do
-      expect(aggregate_root.source_version).to be_zero
+      expect(aggregate_root.instance_variable_get(:@source_version)).to be_zero
     end
   end
 
@@ -33,16 +33,32 @@ describe RubyCqrs::Domain::Aggregate do
       end
 
       it 'leaves source_version unchanged' do
-        original_source_version = aggregate_root.source_version
+        original_source_version = aggregate_root.instance_variable_get(:@source_version)
         aggregate_root.test_fire
 
-        expect(aggregate_root.source_version).to eq original_source_version
+        expect(aggregate_root.instance_variable_get(:@source_version)).to eq original_source_version
       end
 
       it 'calls #on_third_event' do
         expect(aggregate_root).to receive(:on_third_event)
         aggregate_root.test_fire
       end
+    end
+  end
+
+  describe '#is_version_conflicted?' do
+    let(:unsorted_events) { SomeDomain::UNSORTED_EVENTS }
+    let(:state) { { :aggregate_id => aggregate_id, :events => unsorted_events } }
+    let(:loaded_aggregate) { aggregate_root.send(:load_from, state); aggregate_root; }
+
+    it 'returns true when supplied client side version matches the server side persisted source_version' do
+      client_side_version = 2
+      expect(loaded_aggregate.is_version_conflicted? client_side_version).to be_truthy
+    end
+
+    it 'returns false when supplied client side version does not match the server side persisted source_version' do
+      client_side_version = 1
+      expect(loaded_aggregate.is_version_conflicted? client_side_version).to be_falsy
     end
   end
 
@@ -102,7 +118,7 @@ describe RubyCqrs::Domain::Aggregate do
       end
 
       it 'has source_version set to the number of loaded events' do
-        expect(loaded_aggregate.source_version).to eq(unsorted_events.size)
+        expect(loaded_aggregate.instance_variable_get(:@source_version)).to eq(unsorted_events.size)
       end
     end
   end

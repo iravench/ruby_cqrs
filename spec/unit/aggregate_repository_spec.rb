@@ -80,7 +80,7 @@ describe RubyCqrs::Domain::AggregateRepository do
       end
 
       it 'returns an instance of expected source_version' do
-        expect(aggregate.source_version).to eq(expeced_source_version)
+        expect(aggregate.instance_variable_get(:@source_version)).to eq(expeced_source_version)
       end
     end
   end
@@ -137,7 +137,7 @@ describe RubyCqrs::Domain::AggregateRepository do
               repository.save(changed_aggregate)
 
               expect(changed_aggregate.version).to eq(2)
-              expect(changed_aggregate.source_version).to eq(2)
+              expect(changed_aggregate.instance_variable_get(:@source_version)).to eq(2)
             end
           end
 
@@ -152,12 +152,12 @@ describe RubyCqrs::Domain::AggregateRepository do
             end
 
             it 'has source_version unchanged' do
-              original_source_version = changed_aggregate.source_version
+              original_source_version = changed_aggregate.instance_variable_get(:@source_version)
 
               expect { repository.save(changed_aggregate) }.to\
                 raise_error(RubyCqrs::AggregateConcurrencyError)
 
-              expect(changed_aggregate.source_version).to eq(original_source_version)
+              expect(changed_aggregate.instance_variable_get(:@source_version)).to eq(original_source_version)
             end
           end
         end
@@ -199,7 +199,7 @@ describe RubyCqrs::Domain::AggregateRepository do
               repository.save(two_aggregates)
 
               expect(two_aggregates[0].version).to eq(2)
-              expect(two_aggregates[0].source_version).to eq(2)
+              expect(two_aggregates[0].instance_variable_get(:@source_version)).to eq(2)
             end
           end
 
@@ -207,12 +207,12 @@ describe RubyCqrs::Domain::AggregateRepository do
             it 'has both version and source_version unchanged' do
               expect(event_store).to receive(:save)
               original_version = two_aggregates[1].version
-              original_source_version = two_aggregates[1].source_version
+              original_source_version = two_aggregates[1].instance_variable_get(:@source_version)
 
               repository.save(two_aggregates)
 
               expect(two_aggregates[1].version).to eq(original_version)
-              expect(two_aggregates[1].source_version).to eq(original_source_version)
+              expect(two_aggregates[1].instance_variable_get(:@source_version)).to eq(original_source_version)
             end
           end
 
@@ -227,14 +227,14 @@ describe RubyCqrs::Domain::AggregateRepository do
             end
 
             it 'has source_version unchanged' do
-              original_source_version_0 = two_aggregates[0].source_version
-              original_source_version_1 = two_aggregates[1].source_version
+              original_source_version_0 = two_aggregates[0].instance_variable_get(:@source_version)
+              original_source_version_1 = two_aggregates[1].instance_variable_get(:@source_version)
 
               expect { repository.save(two_aggregates) }.to\
                 raise_error(RubyCqrs::AggregateConcurrencyError)
 
-              expect(two_aggregates[0].source_version).to eq(original_source_version_0)
-              expect(two_aggregates[1].source_version).to eq(original_source_version_1)
+              expect(two_aggregates[0].instance_variable_get(:@source_version)).to eq(original_source_version_0)
+              expect(two_aggregates[1].instance_variable_get(:@source_version)).to eq(original_source_version_1)
             end
           end
         end
@@ -263,9 +263,9 @@ describe RubyCqrs::Domain::AggregateRepository do
               repository.save(two_aggregates)
 
               expect(two_aggregates[0].version).to eq(2)
-              expect(two_aggregates[0].source_version).to eq(2)
+              expect(two_aggregates[0].instance_variable_get(:@source_version)).to eq(2)
               expect(two_aggregates[1].version).to eq(2)
-              expect(two_aggregates[1].source_version).to eq(2)
+              expect(two_aggregates[1].instance_variable_get(:@source_version)).to eq(2)
             end
           end
 
@@ -280,14 +280,14 @@ describe RubyCqrs::Domain::AggregateRepository do
             end
 
             it 'has source_version unchanged' do
-              original_source_version_0 = two_aggregates[0].source_version
-              original_source_version_1 = two_aggregates[1].source_version
+              original_source_version_0 = two_aggregates[0].instance_variable_get(:@source_version)
+              original_source_version_1 = two_aggregates[1].instance_variable_get(:@source_version)
 
               expect { repository.save(two_aggregates) }.to\
                 raise_error(RubyCqrs::AggregateConcurrencyError)
 
-              expect(two_aggregates[0].source_version).to eq(original_source_version_0)
-              expect(two_aggregates[1].source_version).to eq(original_source_version_1)
+              expect(two_aggregates[0].instance_variable_get(:@source_version)).to eq(original_source_version_0)
+              expect(two_aggregates[1].instance_variable_get(:@source_version)).to eq(original_source_version_1)
             end
           end
         end

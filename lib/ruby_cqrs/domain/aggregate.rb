@@ -3,7 +3,11 @@ require 'active_support/inflector'
 module RubyCqrs
   module Domain
     module Aggregate
-      attr_reader :aggregate_id, :version, :source_version
+      attr_reader :aggregate_id, :version
+
+      def is_version_conflicted? client_side_version
+        client_side_version == @source_version
+      end
 
     private
       def initialize

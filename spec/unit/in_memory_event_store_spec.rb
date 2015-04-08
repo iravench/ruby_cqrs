@@ -206,9 +206,9 @@ describe RubyCqrs::Data::InMemoryEventStore do
       instance_2.test_fire
 
       repository.save instance_1
-      expect(instance_1.version).to eq(instance_1.source_version)
+      expect(instance_1.version).to eq(instance_1.instance_variable_get(:@source_version))
       expect{ repository.save instance_2 }.to raise_error(RubyCqrs::AggregateConcurrencyError)
-      expect(instance_2.version).to_not eq(instance_2.source_version)
+      expect(instance_2.version).to_not eq(instance_2.instance_variable_get(:@source_version))
     end
   end
 end
