@@ -5,8 +5,6 @@ module SomeDomain
     include RubyCqrs::Domain::Aggregate
     include RubyCqrs::Domain::Snapshotable
 
-    #SNAPSHOT_THRESHOLD = 40
-
     attr_reader :state
 
     def initialize

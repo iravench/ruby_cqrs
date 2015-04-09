@@ -19,24 +19,15 @@ describe 'snapshot feature' do
     expect(changes[:snapshot]).to_not be_nil
   end
 
-  it 'saves and is able to load the correct aggregate_s_45 back(30 events)' do
-    (1..30).each { |x| aggregate_s_45.test_fire }
-    repository.save aggregate_s_45
-    loaded_aggregate = repository.find_by aggregate_s_45.aggregate_id
-    expect(loaded_aggregate.state).to eq(30)
-  end
-
-  it 'saves and is able to load the correct aggregate_s_45 back(60 events)' do
-    (1..60).each { |x| aggregate_s_45.test_fire }
-    repository.save aggregate_s_45
-    loaded_aggregate = repository.find_by aggregate_s_45.aggregate_id
-    expect(loaded_aggregate.state).to eq(60)
-  end
-
   it 'saves and is able to load the correct aggregate back(30 events)' do
     (1..30).each { |x| aggregate.test_fire }
     repository.save aggregate
     loaded_aggregate = repository.find_by aggregate.aggregate_id
+    expect(loaded_aggregate.state).to eq(30)
+
+    (1..30).each { |x| aggregate_s_45.test_fire }
+    repository.save aggregate_s_45
+    loaded_aggregate = repository.find_by aggregate_s_45.aggregate_id
     expect(loaded_aggregate.state).to eq(30)
   end
 
@@ -44,6 +35,11 @@ describe 'snapshot feature' do
     (1..60).each { |x| aggregate.test_fire }
     repository.save aggregate
     loaded_aggregate = repository.find_by aggregate.aggregate_id
+    expect(loaded_aggregate.state).to eq(60)
+
+    (1..60).each { |x| aggregate_s_45.test_fire }
+    repository.save aggregate_s_45
+    loaded_aggregate = repository.find_by aggregate_s_45.aggregate_id
     expect(loaded_aggregate.state).to eq(60)
   end
 
@@ -56,6 +52,16 @@ describe 'snapshot feature' do
     (1..15).each { |x| loaded_aggregate.test_fire }
     repository.save loaded_aggregate
     loaded_aggregate = repository.find_by aggregate.aggregate_id
+    expect(loaded_aggregate.state).to eq(45)
+
+    (1..30).each { |x| aggregate_s_45.test_fire }
+    repository.save aggregate_s_45
+    loaded_aggregate = repository.find_by aggregate_s_45.aggregate_id
+    expect(loaded_aggregate.state).to eq(30)
+
+    (1..15).each { |x| loaded_aggregate.test_fire }
+    repository.save loaded_aggregate
+    loaded_aggregate = repository.find_by aggregate_s_45.aggregate_id
     expect(loaded_aggregate.state).to eq(45)
   end
 
@@ -70,6 +76,17 @@ describe 'snapshot feature' do
 
     loaded_aggregate = repository.find_by aggregate.aggregate_id
     expect(loaded_aggregate.state).to eq(45)
+
+    (1..30).each { |x| aggregate_s_45.test_fire }
+    repository.save aggregate_s_45
+    expect(aggregate_s_45.state).to eq(30)
+
+    (1..15).each { |x| aggregate_s_45.test_fire }
+    repository.save aggregate_s_45
+    expect(aggregate_s_45.state).to eq(45)
+
+    loaded_aggregate = repository.find_by aggregate_s_45.aggregate_id
+    expect(loaded_aggregate.state).to eq(45)
   end
 
   it 'saves and is able to load the correct aggregate back(60 events)' do
@@ -81,6 +98,16 @@ describe 'snapshot feature' do
     (1..30).each { |x| loaded_aggregate.test_fire }
     repository.save loaded_aggregate
     loaded_aggregate = repository.find_by aggregate.aggregate_id
+    expect(loaded_aggregate.state).to eq(60)
+
+    (1..30).each { |x| aggregate_s_45.test_fire }
+    repository.save aggregate_s_45
+    loaded_aggregate = repository.find_by aggregate_s_45.aggregate_id
+    expect(loaded_aggregate.state).to eq(30)
+
+    (1..30).each { |x| loaded_aggregate.test_fire }
+    repository.save loaded_aggregate
+    loaded_aggregate = repository.find_by aggregate_s_45.aggregate_id
     expect(loaded_aggregate.state).to eq(60)
   end
 
@@ -103,6 +130,26 @@ describe 'snapshot feature' do
     (1..15).each { |x| loaded_aggregate.test_fire }
     repository.save loaded_aggregate
     loaded_aggregate = repository.find_by aggregate.aggregate_id
+    expect(loaded_aggregate.state).to eq(75)
+
+    (1..30).each { |x| aggregate_s_45.test_fire }
+    repository.save aggregate_s_45
+    loaded_aggregate = repository.find_by aggregate_s_45.aggregate_id
+    expect(loaded_aggregate.state).to eq(30)
+
+    (1..15).each { |x| loaded_aggregate.test_fire }
+    repository.save loaded_aggregate
+    loaded_aggregate = repository.find_by aggregate_s_45.aggregate_id
+    expect(loaded_aggregate.state).to eq(45)
+
+    (1..15).each { |x| loaded_aggregate.test_fire }
+    repository.save loaded_aggregate
+    loaded_aggregate = repository.find_by aggregate_s_45.aggregate_id
+    expect(loaded_aggregate.state).to eq(60)
+
+    (1..15).each { |x| loaded_aggregate.test_fire }
+    repository.save loaded_aggregate
+    loaded_aggregate = repository.find_by aggregate_s_45.aggregate_id
     expect(loaded_aggregate.state).to eq(75)
   end
 end
