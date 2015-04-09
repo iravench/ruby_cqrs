@@ -30,12 +30,14 @@ module RubyCqrs
         state
       end
 
-      # notice there could be partial save here when verify_state raise an error
       def save changes, command_context
         changes.each do |change|
           key = change[:aggregate_id].to_sym
-          create_aggregate key, change
           verify_state key, change
+        end
+        changes.each do |change|
+          key = change[:aggregate_id].to_sym
+          create_aggregate key, change
           update_aggregate key, change
         end
         nil
@@ -71,7 +73,7 @@ module RubyCqrs
 
       def verify_state key, change
         raise AggregateConcurrencyError.new("on aggregate #{key}")\
-          unless @aggregate_store[key][:version] == change[:expecting_source_version]
+          if @aggregate_store.has_key? key and @aggregate_store[key][:version] != change[:expecting_source_version]
       end
 
       def decode_event_from event_record
