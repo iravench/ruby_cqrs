@@ -1,9 +1,8 @@
 require_relative('../spec_helper')
 
 describe RubyCqrs::Domain::Aggregate do
-  let(:aggregate_type) { SomeDomain::AggregateRoot }
   let(:aggregate_id) { SomeDomain::AGGREGATE_ID }
-  let(:aggregate_root) { aggregate_type.new }
+  let(:aggregate_root) { SomeDomain::AggregateRoot.new }
 
   describe '#new' do
     it 'has aggregate_id initilized as a valid uuid' do

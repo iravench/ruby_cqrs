@@ -163,6 +163,19 @@ describe RubyCqrs::Domain::AggregateRepository do
         end
       end
 
+      context 'when saving 2 instances of the same aggregate' do
+        it 'raises AggregateInstanceDuplicatedError and nothing should be changed' do
+          aggregate_1 = aggregate_type.new
+          aggregate_2 = aggregate_1.dup
+          aggregate_1.test_fire
+          aggregate_2.test_fire
+          aggregates = [ aggregate_1, aggregate_2 ]
+          expect{ repository.save aggregates }.to raise_error(RubyCqrs::AggregateInstanceDuplicatedError)
+          expect(aggregate_1.version).to_not eq(aggregate_1.instance_variable_get(:@source_verrsion))
+          expect(aggregate_2.version).to_not eq(aggregate_2.instance_variable_get(:@source_verrsion))
+        end
+      end
+
       context 'when saving 2 aggregates' do
         context 'when none of the aggregates have been changed' do
           let(:unchanged_aggregates) do
@@ -241,10 +254,13 @@ describe RubyCqrs::Domain::AggregateRepository do
 
         context 'when both aggregates have been changed' do
           let(:two_aggregates) do
-            _aggregate = aggregate_type.new
-            _aggregate.test_fire
-            _aggregate.test_fire_ag
-            [ _aggregate, _aggregate.dup ]
+            _aggregate_1 = aggregate_type.new
+            _aggregate_2 = aggregate_type.new
+            _aggregate_1.test_fire
+            _aggregate_1.test_fire_ag
+            _aggregate_2.test_fire
+            _aggregate_2.test_fire_ag
+            [ _aggregate_2, _aggregate_1 ]
           end
 
           it "delegates event persistence to the EventStore instance's #save" do

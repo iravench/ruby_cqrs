@@ -1,50 +1,52 @@
 require_relative('../spec_helper')
+describe 'decoder & encoder' do
+  let(:unsupported_obj) { SomeDomain::FirstEvent.new }
+  let(:unsupported_obj_type) { SomeDomain::FirstEvent.name }
+  let(:supported_obj) { SomeDomain::THIRD_EVENT_INSTANCE }
+  let(:supported_obj_type) { SomeDomain::THIRD_EVENT_INSTANCE.class.name }
 
-describe RubyCqrs::Data::Encodable do
-  describe '#try_encode' do
-    let(:unsupported_event) { SomeDomain::FirstEvent.new }
-    let(:supported_event) { SomeDomain::THIRD_EVENT_INSTANCE }
+  describe RubyCqrs::Data::Encodable do
+    describe '#try_encode' do
+      it 'encodes a supported object into string' do
+        encoded_message = supported_obj.try_encode
+        expect(encoded_message.class.name).to eq('String')
+      end
 
-    it 'encodes a supported event into string' do
-      encoded_message = supported_event.try_encode
-      expect(encoded_message.class.name).to eq('String')
-    end
-
-    it 'returns an unsupported event as is' do
-      encoded_message = unsupported_event.try_encode
-      expect(encoded_message.class.name).to eq('SomeDomain::FirstEvent')
+      it 'returns an unsupported object as is' do
+        encoded_message = unsupported_obj.try_encode
+        expect(encoded_message.class.name).to eq(unsupported_obj_type)
+      end
     end
   end
-end
 
-describe RubyCqrs::Data::Decodable do
-  let(:decoder_type) { Class.new { include RubyCqrs::Data::Decodable } }
-  let(:decoder) { decoder_type.new }
+  describe RubyCqrs::Data::Decodable do
+    let(:decoder_type) { Class.new { include RubyCqrs::Data::Decodable } }
+    let(:decoder) { decoder_type.new }
 
-  describe '#try_decode' do
-    let(:unsupported_event_record) { { :aggregate_id => SomeDomain::AGGREGATE_ID,
-                                       :event_type => 'SomeDomain::FirstEvent',
-                                       :version => 1,
-                                       :data => SomeDomain::FirstEvent.new } }
-    let(:supported_event_record) { {   :aggregate_id => SomeDomain::AGGREGATE_ID,
-                                       :event_type => 'SomeDomain::ThirdEvent',
-                                       :version => 1,
-                                       :data => SomeDomain::THIRD_EVENT_INSTANCE.try_encode } }
+    describe '#try_decode' do
+      let(:unsupported_record) {
+        { :object_type => unsupported_obj_type,
+          :data => unsupported_obj } }
+      let(:supported_record) {
+        { :object_type => supported_obj_type,
+          :data => supported_obj.try_encode } }
 
-    it 'decodes a supported event type from string' do
-      decoded_event = decoder.try_decode(supported_event_record[:event_type],\
-                                         supported_event_record[:data])
-      expect(decoded_event.class.name).to eq('SomeDomain::ThirdEvent')
-      expect(decoded_event.id).to eq(1)
-      expect(decoded_event.name).to eq('some dude')
-      expect(decoded_event.phone).to eq('13322244444')
-      expect(decoded_event.note).to eq('good luck')
-    end
+      it 'decodes a supported object type from string' do
+        decoded_object = decoder.try_decode(supported_record[:object_type],\
+                                           supported_record[:data])
+        expect(decoded_object.class.name).to eq(supported_obj_type)
+        # specific test value
+        expect(decoded_object.id).to eq(1)
+        expect(decoded_object.name).to eq('some dude')
+        expect(decoded_object.phone).to eq('13322244444')
+        expect(decoded_object.note).to eq('good luck')
+      end
 
-    it 'returns as is for an unsupported event type' do
-      decoded_event = decoder.try_decode(unsupported_event_record[:event_type],\
-                                         unsupported_event_record[:data])
-      expect(decoded_event.class.name).to eq('SomeDomain::FirstEvent')
+      it 'returns as is for an unsupported object type' do
+        decoded_object = decoder.try_decode(unsupported_record[:object_type],\
+                                           unsupported_record[:data])
+        expect(decoded_object.class.name).to eq(unsupported_obj_type)
+      end
     end
   end
 end

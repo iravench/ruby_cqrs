@@ -4,6 +4,7 @@ require_relative '../guid'
 module RubyCqrs
   class AggregateNotFound < Error; end
   class AggregateConcurrencyError < Error; end
+  class AggregateInstanceDuplicatedError < Error; end
 
   module Domain
     class AggregateRepository
@@ -40,6 +41,8 @@ module RubyCqrs
       end
 
       def delegate_persistence_of aggregates
+        verify_uniqueness_of aggregates
+
         changes = prep_changes_for(aggregates)
         if changes.size > 0
           @event_store.save changes, @command_context
@@ -47,7 +50,13 @@ module RubyCqrs
             aggregate.send(:commit)
           end
         end
+
         nil
+      end
+
+      def verify_uniqueness_of aggregates
+        uniq_array =  aggregates.uniq { |aggregate| aggregate.aggregate_id }
+        raise AggregateInstanceDuplicatedError unless uniq_array.size == aggregates.size
       end
 
       def prep_changes_for aggregates
