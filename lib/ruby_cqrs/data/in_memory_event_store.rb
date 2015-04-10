@@ -15,13 +15,7 @@ module RubyCqrs
                   :aggregate_type => @aggregate_store[key][:type] }
 
         if @snapshot_store.has_key? key
-          snapshot_version = @snapshot_store[key][:version]
-          state[:events] = @event_store[key][:events]\
-            .select { |event_record| event_record[:version] > snapshot_version }\
-            .map { |event_record| decode_event_from event_record }
-          snapshot_state = decode_snapshot_state_from @snapshot_store[key]
-          state[:snapshot] = { :state => snapshot_state,
-                               :version => snapshot_version }
+          extract_state_with_snapshot key, state
         else
           state[:events] = @event_store[key][:events]\
             .map { |event_record| decode_event_from event_record }
@@ -63,6 +57,10 @@ module RubyCqrs
                                           :data => data }
         end
 
+        try_update_snapshot key, change
+      end
+
+      def try_update_snapshot key, change
         unless change[:snapshot].nil?
           data = encode_data_from change[:snapshot][:state]
           @snapshot_store[key][:state] = data
@@ -71,9 +69,20 @@ module RubyCqrs
         end
       end
 
+      def extract_state_with_snapshot key, state
+        snapshot_version = @snapshot_store[key][:version]
+        state[:events] = @event_store[key][:events]\
+          .select { |event_record| event_record[:version] > snapshot_version }\
+          .map { |event_record| decode_event_from event_record }
+        snapshot_state = decode_snapshot_state_from @snapshot_store[key]
+        state[:snapshot] = { :state => snapshot_state,
+                             :version => snapshot_version }
+      end
+
       def verify_state key, change
         raise AggregateConcurrencyError.new("on aggregate #{key}")\
-          if @aggregate_store.has_key? key and @aggregate_store[key][:version] != change[:expecting_source_version]
+          if @aggregate_store.has_key? key\
+            and @aggregate_store[key][:version] != change[:expecting_source_version]
       end
 
       def decode_event_from event_record
