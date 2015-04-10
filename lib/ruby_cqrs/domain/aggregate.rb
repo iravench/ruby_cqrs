@@ -6,7 +6,7 @@ module RubyCqrs
       attr_reader :aggregate_id, :version
 
       def is_version_conflicted? client_side_version
-        client_side_version == @source_version
+        client_side_version != @source_version
       end
 
     private

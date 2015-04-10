@@ -50,13 +50,13 @@ describe RubyCqrs::Domain::Aggregate do
     let(:state) { { :aggregate_id => aggregate_id, :events => unsorted_events } }
     let(:loaded_aggregate) { aggregate_root.send(:load_from, state); aggregate_root; }
 
-    it 'returns true when supplied client side version matches the server side persisted source_version' do
-      client_side_version = 2
+    it 'returns true when supplied client side version does not match the server side persisted source_version' do
+      client_side_version = unsorted_events.size - 1
       expect(loaded_aggregate.is_version_conflicted? client_side_version).to be_truthy
     end
 
-    it 'returns false when supplied client side version does not match the server side persisted source_version' do
-      client_side_version = 1
+    it 'returns false when supplied client side version matches the server side persisted source_version' do
+      client_side_version = unsorted_events.size
       expect(loaded_aggregate.is_version_conflicted? client_side_version).to be_falsy
     end
   end
