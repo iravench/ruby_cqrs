@@ -51,126 +51,126 @@ describe RubyCqrs::Data::InMemoryEventStore do
     end
 
     it "receives correct input on #save with 1 snapshot taken when enough events get fired" do
-      aggregate_root = aggregate_type.new
+      aggregate = aggregate_type.new
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      aggregate_root = aggregate_s_45_type.new
+      aggregate = aggregate_s_45_type.new
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
-      (1..45).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..45).each { |x| aggregate.test_fire }
+      repository.save aggregate
     end
 
     it "receives correct input on #save with 1 snapshot taken when enough events get fired, also test result" do
-      aggregate_root = aggregate_type.new
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      aggregate = aggregate_type.new
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      state = event_store.load_by aggregate_root.aggregate_id, command_context
-      expect(state[:aggregate_id]).to eq(aggregate_root.aggregate_id)
+      state = event_store.load_by aggregate.aggregate_id, command_context
+      expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_type_str)
       expect(state[:events].size).to eq(0)
       expect(state[:snapshot][:state]).to_not be_nil
       expect(state[:snapshot][:version]).to be(30)
 
-      aggregate_root = aggregate_s_45_type.new
-      (1..45).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      aggregate = aggregate_s_45_type.new
+      (1..45).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      state = event_store.load_by aggregate_root.aggregate_id, command_context
-      expect(state[:aggregate_id]).to eq(aggregate_root.aggregate_id)
+      state = event_store.load_by aggregate.aggregate_id, command_context
+      expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_s_45_type_str)
       expect(state[:events].size).to eq(0)
       expect(state[:snapshot]).to_not be_nil
     end
 
     it "receives correct input on #save with no snapshot taken when not enough events get fired" do
-      aggregate_root = aggregate_type.new
+      aggregate = aggregate_type.new
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to be_nil }
-      (1..29).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..29).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      aggregate_root = aggregate_s_45_type.new
+      aggregate = aggregate_s_45_type.new
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to be_nil }
-      (1..44).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..44).each { |x| aggregate.test_fire }
+      repository.save aggregate
     end
 
     it "receives correct input on #save with no snapshot taken when not enough events get fired, also test result" do
-      aggregate_root = aggregate_type.new
-      (1..29).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      aggregate = aggregate_type.new
+      (1..29).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      state = event_store.load_by aggregate_root.aggregate_id, command_context
-      expect(state[:aggregate_id]).to eq(aggregate_root.aggregate_id)
+      state = event_store.load_by aggregate.aggregate_id, command_context
+      expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_type_str)
       expect(state[:events].size).to eq(29)
       expect(state[:snapshot]).to be_nil
 
-      aggregate_root = aggregate_s_45_type.new
-      (1..44).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      aggregate = aggregate_s_45_type.new
+      (1..44).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      state = event_store.load_by aggregate_root.aggregate_id, command_context
-      expect(state[:aggregate_id]).to eq(aggregate_root.aggregate_id)
+      state = event_store.load_by aggregate.aggregate_id, command_context
+      expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_s_45_type_str)
       expect(state[:events].size).to eq(44)
       expect(state[:snapshot]).to be_nil
     end
 
     it "receives correct input on #save incrementally and eventually triggers a snapshot" do
-      aggregate_root = aggregate_type.new
+      aggregate = aggregate_type.new
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to be_nil }
-      (1..15).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..15).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
-      (1..15).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..15).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      aggregate_root = aggregate_s_45_type.new
+      aggregate = aggregate_s_45_type.new
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to be_nil }
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
-      (1..15).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..15).each { |x| aggregate.test_fire }
+      repository.save aggregate
     end
 
     it "receives correct input on #save incrementally and eventually triggers a snapshot, also test result" do
-      aggregate_root = aggregate_type.new
-      (1..15).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
-      (1..15).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      aggregate = aggregate_type.new
+      (1..15).each { |x| aggregate.test_fire }
+      repository.save aggregate
+      (1..15).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      state = event_store.load_by aggregate_root.aggregate_id, command_context
-      expect(state[:aggregate_id]).to eq(aggregate_root.aggregate_id)
+      state = event_store.load_by aggregate.aggregate_id, command_context
+      expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_type_str)
       expect(state[:events].size).to eq(0)
       expect(state[:snapshot][:state]).to_not be_nil
       expect(state[:snapshot][:version]).to be(30)
 
-      aggregate_root = aggregate_s_45_type.new
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
-      (1..15).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      aggregate = aggregate_s_45_type.new
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
+      (1..15).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      state = event_store.load_by aggregate_root.aggregate_id, command_context
-      expect(state[:aggregate_id]).to eq(aggregate_root.aggregate_id)
+      state = event_store.load_by aggregate.aggregate_id, command_context
+      expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_s_45_type_str)
       expect(state[:events].size).to eq(0)
       expect(state[:snapshot][:state]).to_not be_nil
@@ -178,39 +178,39 @@ describe RubyCqrs::Data::InMemoryEventStore do
     end
 
     it "receives correct input on #save with 1 snapshot taken when more than enough events get fired" do
-      aggregate_root = aggregate_type.new
+      aggregate = aggregate_type.new
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
-      (1..45).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..45).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      aggregate_root = aggregate_s_45_type.new
+      aggregate = aggregate_s_45_type.new
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
-      (1..60).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..60).each { |x| aggregate.test_fire }
+      repository.save aggregate
     end
 
     it "receives correct input on #save with 1 snapshot taken when more than enough events get fired, also test result" do
-      aggregate_root = aggregate_type.new
-      (1..45).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      aggregate = aggregate_type.new
+      (1..45).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      state = event_store.load_by aggregate_root.aggregate_id, command_context
-      expect(state[:aggregate_id]).to eq(aggregate_root.aggregate_id)
+      state = event_store.load_by aggregate.aggregate_id, command_context
+      expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_type_str)
       expect(state[:events].size).to eq(0)
       expect(state[:snapshot][:state]).to_not be_nil
       expect(state[:snapshot][:version]).to be(45)
 
-      aggregate_root = aggregate_s_45_type.new
-      (1..60).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      aggregate = aggregate_s_45_type.new
+      (1..60).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      state = event_store.load_by aggregate_root.aggregate_id, command_context
-      expect(state[:aggregate_id]).to eq(aggregate_root.aggregate_id)
+      state = event_store.load_by aggregate.aggregate_id, command_context
+      expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_s_45_type_str)
       expect(state[:events].size).to eq(0)
       expect(state[:snapshot][:state]).to_not be_nil
@@ -218,53 +218,53 @@ describe RubyCqrs::Data::InMemoryEventStore do
     end
 
     it "receives correct input on #save with 1 snapshot taken when enough events get fired, twice" do
-      aggregate_root = aggregate_type.new
+      aggregate = aggregate_type.new
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      aggregate_root = aggregate_s_45_type.new
-
-      expect(event_store).to receive(:save)\
-        { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
-      (1..45).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      aggregate = aggregate_s_45_type.new
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
-      (1..45).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..45).each { |x| aggregate.test_fire }
+      repository.save aggregate
+
+      expect(event_store).to receive(:save)\
+        { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
+      (1..45).each { |x| aggregate.test_fire }
+      repository.save aggregate
     end
 
     it "receives correct input on #save with 1 snapshot taken when enough events get fired, twice, also test result" do
-      aggregate_root = aggregate_type.new
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      aggregate = aggregate_type.new
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      state = event_store.load_by aggregate_root.aggregate_id, command_context
-      expect(state[:aggregate_id]).to eq(aggregate_root.aggregate_id)
+      state = event_store.load_by aggregate.aggregate_id, command_context
+      expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_type_str)
       expect(state[:events].size).to eq(0)
       expect(state[:snapshot][:state]).to_not be_nil
       expect(state[:snapshot][:version]).to be(60)
 
-      aggregate_root = aggregate_s_45_type.new
-      (1..45).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
-      (1..45).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      aggregate = aggregate_s_45_type.new
+      (1..45).each { |x| aggregate.test_fire }
+      repository.save aggregate
+      (1..45).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      state = event_store.load_by aggregate_root.aggregate_id, command_context
-      expect(state[:aggregate_id]).to eq(aggregate_root.aggregate_id)
+      state = event_store.load_by aggregate.aggregate_id, command_context
+      expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_s_45_type_str)
       expect(state[:events].size).to eq(0)
       expect(state[:snapshot][:state]).to_not be_nil
@@ -272,81 +272,81 @@ describe RubyCqrs::Data::InMemoryEventStore do
     end
 
     it "receives correct input on #save incrementally and eventually triggers two snapshots" do
-      aggregate_root = aggregate_type.new
+      aggregate = aggregate_type.new
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to be_nil }
-      (1..15).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..15).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
-      (1..15).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..15).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to be_nil }
-      (1..15).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..15).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      aggregate_root = aggregate_s_45_type.new
+      aggregate = aggregate_s_45_type.new
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to be_nil }
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to be_nil }
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
       expect(event_store).to receive(:save)\
         { |changes, context| expect(changes[0][:snapshot]).to_not be_nil }
-      (1..15).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      (1..15).each { |x| aggregate.test_fire }
+      repository.save aggregate
     end
 
     it "receives correct input on #save incrementally and eventually triggers two snapshots, also test result" do
-      aggregate_root = aggregate_type.new
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
-      (1..15).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
-      (1..15).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
-      (1..15).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      aggregate = aggregate_type.new
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
+      (1..15).each { |x| aggregate.test_fire }
+      repository.save aggregate
+      (1..15).each { |x| aggregate.test_fire }
+      repository.save aggregate
+      (1..15).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      state = event_store.load_by aggregate_root.aggregate_id, command_context
-      expect(state[:aggregate_id]).to eq(aggregate_root.aggregate_id)
+      state = event_store.load_by aggregate.aggregate_id, command_context
+      expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_type_str)
       expect(state[:events].size).to eq(15)
       expect(state[:snapshot][:state]).to_not be_nil
       expect(state[:snapshot][:version]).to be(60)
 
-      aggregate_root = aggregate_s_45_type.new
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
-      (1..30).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
-      (1..15).each { |x| aggregate_root.test_fire }
-      repository.save aggregate_root
+      aggregate = aggregate_s_45_type.new
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
+      (1..30).each { |x| aggregate.test_fire }
+      repository.save aggregate
+      (1..15).each { |x| aggregate.test_fire }
+      repository.save aggregate
 
-      state = event_store.load_by aggregate_root.aggregate_id, command_context
-      expect(state[:aggregate_id]).to eq(aggregate_root.aggregate_id)
+      state = event_store.load_by aggregate.aggregate_id, command_context
+      expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_s_45_type_str)
       expect(state[:events].size).to eq(0)
       expect(state[:snapshot][:state]).to_not be_nil

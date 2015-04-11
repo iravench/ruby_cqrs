@@ -68,6 +68,24 @@ module SomeDomain
     end
   end
 
+  class AggregateRootNoSnapshot
+    include RubyCqrs::Domain::Aggregate
+
+    attr_reader :state
+
+    def initialize
+      @state = 0
+      super
+    end
+
+    def test_fire
+      raise_event THIRD_EVENT_INSTANCE
+    end
+
+  private
+    def on_third_event event; @state += 1; end
+  end
+
   class Snapshot
     include Beefcake::Message
     include RubyCqrs::Data::Encodable

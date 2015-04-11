@@ -2,45 +2,45 @@ require_relative('../spec_helper')
 
 describe RubyCqrs::Domain::Aggregate do
   let(:aggregate_id) { SomeDomain::AGGREGATE_ID }
-  let(:aggregate_root) { SomeDomain::AggregateRoot.new }
+  let(:aggregate) { SomeDomain::AggregateRoot.new }
 
   describe '#new' do
     it 'has aggregate_id initilized as a valid uuid' do
-      expect(aggregate_root.aggregate_id).to be_a_valid_uuid
+      expect(aggregate.aggregate_id).to be_a_valid_uuid
     end
 
     it 'has version initilized as 0' do
-      expect(aggregate_root.version).to be_zero
+      expect(aggregate.version).to be_zero
     end
 
     it 'has source_version initilized as 0' do
-      expect(aggregate_root.instance_variable_get(:@source_version)).to be_zero
+      expect(aggregate.instance_variable_get(:@source_version)).to be_zero
     end
   end
 
   describe '#raise_event' do
     it 'raise NotADomainEventError when raising an object that is not a proper event' do
-      expect { aggregate_root.fire_weird_stuff }.to raise_error(RubyCqrs::NotADomainEventError)
+      expect { aggregate.fire_weird_stuff }.to raise_error(RubyCqrs::NotADomainEventError)
     end
 
     context 'after raising an event' do
       it 'has version increased by 1' do
-        original_version = aggregate_root.version
-        aggregate_root.test_fire
+        original_version = aggregate.version
+        aggregate.test_fire
 
-        expect(aggregate_root.version).to eq(original_version + 1)
+        expect(aggregate.version).to eq(original_version + 1)
       end
 
       it 'leaves source_version unchanged' do
-        original_source_version = aggregate_root.instance_variable_get(:@source_version)
-        aggregate_root.test_fire
+        original_source_version = aggregate.instance_variable_get(:@source_version)
+        aggregate.test_fire
 
-        expect(aggregate_root.instance_variable_get(:@source_version)).to eq original_source_version
+        expect(aggregate.instance_variable_get(:@source_version)).to eq original_source_version
       end
 
       it 'calls #on_third_event' do
-        expect(aggregate_root).to receive(:on_third_event)
-        aggregate_root.test_fire
+        expect(aggregate).to receive(:on_third_event)
+        aggregate.test_fire
       end
     end
   end
@@ -48,7 +48,7 @@ describe RubyCqrs::Domain::Aggregate do
   describe '#is_version_conflicted?' do
     let(:unsorted_events) { SomeDomain::UNSORTED_EVENTS }
     let(:state) { { :aggregate_id => aggregate_id, :events => unsorted_events } }
-    let(:loaded_aggregate) { aggregate_root.send(:load_from, state); aggregate_root; }
+    let(:loaded_aggregate) { aggregate.send(:load_from, state); aggregate; }
 
     it 'returns true when supplied client side version does not match the server side persisted source_version' do
       client_side_version = unsorted_events.size - 1
@@ -64,21 +64,21 @@ describe RubyCqrs::Domain::Aggregate do
   describe '#get_changes' do
     context 'after raising no event' do
       it 'returns nil' do
-        expect(aggregate_root.send(:get_changes)).to be_nil
+        expect(aggregate.send(:get_changes)).to be_nil
       end
     end
 
     context 'after raising 2 events' do
       it 'returns proper change summary' do
-        aggregate_root.test_fire
-        aggregate_root.test_fire_ag
-        pending_changes = aggregate_root.send(:get_changes)
+        aggregate.test_fire
+        aggregate.test_fire_ag
+        pending_changes = aggregate.send(:get_changes)
 
         expect(pending_changes[:events].size).to eq(2)
         expect(pending_changes[:events][0].version).to eq(1)
         expect(pending_changes[:events][1].version).to eq(2)
-        expect(pending_changes[:aggregate_id]).to eq(aggregate_root.aggregate_id)
-        expect(pending_changes[:aggregate_type]).to eq(aggregate_root.class.name)
+        expect(pending_changes[:aggregate_id]).to eq(aggregate.aggregate_id)
+        expect(pending_changes[:aggregate_type]).to eq(aggregate.class.name)
         expect(pending_changes[:expecting_source_version]).to eq(0)
         expect(pending_changes[:expecting_version]).to eq(2)
       end
@@ -88,22 +88,22 @@ describe RubyCqrs::Domain::Aggregate do
   describe '#load_from' do
     let(:unsorted_events) { SomeDomain::UNSORTED_EVENTS }
     let(:state) { { :aggregate_id => aggregate_id, :events => unsorted_events } }
-    let(:loaded_aggregate) { aggregate_root.send(:load_from, state); aggregate_root; }
+    let(:loaded_aggregate) { aggregate.send(:load_from, state); aggregate; }
 
     context 'when loading events' do
-      after(:each) { aggregate_root.send(:load_from, state) }
+      after(:each) { aggregate.send(:load_from, state) }
 
       it 'calls #on_first_event' do
-        expect(aggregate_root).to receive(:on_first_event)
+        expect(aggregate).to receive(:on_first_event)
       end
 
       it 'calls #on_second_event' do
-        expect(aggregate_root).to receive(:on_second_event)
+        expect(aggregate).to receive(:on_second_event)
       end
 
       it 'calls #on_first_event, #on_second_event in order' do
-        expect(aggregate_root).to receive(:on_first_event).ordered
-        expect(aggregate_root).to receive(:on_second_event).ordered
+        expect(aggregate).to receive(:on_first_event).ordered
+        expect(aggregate).to receive(:on_second_event).ordered
       end
     end
 
