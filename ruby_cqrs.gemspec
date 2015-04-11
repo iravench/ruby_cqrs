@@ -12,8 +12,8 @@ Gem::Specification.new do |s|
   s.platform      = Gem::Platform::RUBY
   s.license       = "MIT"
   s.summary       = "ruby_cqrs-#{RubyCqrs::VERSION}"
-  s.description   = "a ruby cqrs implementation using event sourcing"
-  s.homepage      = "TODO: Put your gem's website or public repo URL here."
+  s.description   = "a ruby implementation of cqrs, using event sourcing"
+  s.homepage      = "https://github.com/iravench/ruby_cqrs"
 
   s.files             = `git ls-files -- lib/*`.split("\n")
   s.files            += ["License.txt"]
