@@ -12,9 +12,8 @@ describe 'decoder & encoder' do
         expect(encoded_message.class.name).to eq('String')
       end
 
-      it 'returns an unsupported object as is' do
-        encoded_message = unsupported_obj.try_encode
-        expect(encoded_message.class.name).to eq(unsupported_obj_type)
+      it 'raises an ObjectNotEncodableError when trying to encode an unsupported object' do
+        expect{ unsupported_obj.try_encode }.to raise_error(RubyCqrs::ObjectNotEncodableError)
       end
     end
   end
@@ -42,10 +41,11 @@ describe 'decoder & encoder' do
         expect(decoded_object.note).to eq('good luck')
       end
 
-      it 'returns as is for an unsupported object type' do
-        decoded_object = decoder.try_decode(unsupported_record[:object_type],\
-                                           unsupported_record[:data])
-        expect(decoded_object.class.name).to eq(unsupported_obj_type)
+      it 'raises an ObjectNotDecodableError when trying to decode an unsupported object' do
+        expect {
+          decoder.try_decode unsupported_record[:object_type],\
+                             unsupported_record[:data]
+        }.to raise_error(RubyCqrs::ObjectNotDecodableError)
       end
     end
   end
