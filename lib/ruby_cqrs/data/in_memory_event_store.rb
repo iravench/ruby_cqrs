@@ -1,6 +1,7 @@
 module RubyCqrs
   module Data
-    class InMemoryEventStore < EventStore
+    class InMemoryEventStore
+      include EventStore
       include Decodable
 
       def initialize

@@ -7,7 +7,7 @@ describe RubyCqrs::Domain::AggregateRepository do
                                     :aggregate_type => 'SomeDomain::AggregateRoot',
                                     :events => unsorted_events } }
   let(:event_store) do
-    _event_store = RubyCqrs::Data::EventStore.new
+    _event_store = (Class.new { include RubyCqrs::Data::EventStore}).new
     allow(_event_store).to receive(:load_by).and_return(event_store_load_result)
     _event_store
   end
@@ -49,7 +49,7 @@ describe RubyCqrs::Domain::AggregateRepository do
 
     context 'when the specified aggregate could not be found' do
       let(:empty_event_store) do
-        _event_store = RubyCqrs::Data::EventStore.new
+        _event_store = (Class.new { include RubyCqrs::Data::EventStore}).new
         allow(_event_store).to receive(:load_by).and_return(nil)
         _event_store
       end

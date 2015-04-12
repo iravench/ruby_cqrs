@@ -1,6 +1,6 @@
 module RubyCqrs
   module Data
-    class EventStore
+    module EventStore
       def load_by guid, command_context
         raise NotImplementedError
       end
