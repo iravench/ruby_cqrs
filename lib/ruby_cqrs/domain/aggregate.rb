@@ -5,11 +5,6 @@ module RubyCqrs
     module Aggregate
       attr_reader :aggregate_id, :version
 
-      def is_version_conflicted? client_side_version
-        client_side_version != @source_version
-      end
-
-    private
       def initialize
         @aggregate_id = Guid.create
         @version = 0
@@ -18,6 +13,12 @@ module RubyCqrs
         @pending_events = []
         super
       end
+
+      def is_version_conflicted? client_side_version
+        client_side_version != @source_version
+      end
+
+    private
 
       def load_from state
         sorted_events = state[:events].sort { |x, y| x.version <=> y.version }
