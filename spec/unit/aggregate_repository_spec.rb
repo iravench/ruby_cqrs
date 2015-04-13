@@ -132,6 +132,17 @@ describe RubyCqrs::Domain::AggregateRepository do
           it "delegates event persistence to the EventStore instance's #save" do
             expect(event_store).to receive(:save) do |aggregate_changes, some_command_context|
               expect(aggregate_changes.size).to eq(1)
+              expect(aggregate_changes[0][:aggregate_id]).to eq(changed_aggregate.aggregate_id)
+              expect(aggregate_changes[0][:aggregate_type]).to eq(changed_aggregate.class.name)
+              expect(aggregate_changes[0][:events].size).to eq(2)
+              expect(aggregate_changes[0][:events][0][:aggregate_id]).to eq(changed_aggregate.aggregate_id)
+              expect(aggregate_changes[0][:events][0][:version]).to eq(1)
+              expect(aggregate_changes[0][:events][0][:event_type]).to eq(SomeDomain::ThirdEvent.name)
+              expect(aggregate_changes[0][:events][0][:data]).to_not be_nil
+              expect(aggregate_changes[0][:events][1][:aggregate_id]).to eq(changed_aggregate.aggregate_id)
+              expect(aggregate_changes[0][:events][1][:version]).to eq(2)
+              expect(aggregate_changes[0][:events][1][:event_type]).to eq(SomeDomain::ForthEvent.name)
+              expect(aggregate_changes[0][:events][1][:data]).to_not be_nil
               expect(some_command_context).to be(command_context)
             end
 
