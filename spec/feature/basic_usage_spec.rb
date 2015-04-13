@@ -1,5 +1,7 @@
 require_relative('../spec_helper.rb')
 
+# after installing the gem, require the feature
+require('ruby_cqrs')
 # define your domain object
 class Customer
   # mark as a domain object
