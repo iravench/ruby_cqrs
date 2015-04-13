@@ -15,7 +15,7 @@ module RubyCqrs
                   :aggregate_type => @aggregate_store[key][:type] }
 
         if @snapshot_store.has_key? key
-          extract_state_with_snapshot key, state
+          extract_snapshot_into key, state
         else
           state[:events] = @event_store[key][:events]
         end
@@ -30,28 +30,30 @@ module RubyCqrs
         end
         changes.each do |change|
           key = change[:aggregate_id].to_sym
-          create_aggregate key, change
-          update_aggregate key, change
+          create_state key, change
+          update_state key, change
         end
         nil
       end
 
     private
-      def create_aggregate key, change
+      def create_state key, change
         unless @aggregate_store.has_key? key
           @aggregate_store[key] = { :type => change[:aggregate_type], :version => 0 }
           @event_store[key] = { :events => [] }
         end
-        @snapshot_store[key] = {} unless change[:snapshot].nil?
+        unless @snapshot_store.has_key? key or change[:snapshot].nil?
+          @snapshot_store[key] = {}
+        end
       end
 
-      def update_aggregate key, change
+      def update_state key, change
         @aggregate_store[key][:version] = change[:expecting_version]
         change[:events].each { |event| @event_store[key][:events] << event }
         @snapshot_store[key] = change[:snapshot] unless change[:snapshot].nil?
       end
 
-      def extract_state_with_snapshot key, state
+      def extract_snapshot_into key, state
         snapshot_version = @snapshot_store[key][:version]
         state[:events] = @event_store[key][:events]\
           .select { |event_record| event_record[:version] > snapshot_version }
