@@ -179,16 +179,4 @@ module SomeDomain
 
   FORTH_EVENT_INSTANCE = ForthEvent.new(:order_id => 100, :price => 2000,\
                                         :customer_id => 1, :note => 'sold!')
-
-  UNSORTED_EVENTS = [ SecondEvent.new, FirstEvent.new ]
-
-  UNSORTED_EVENT_RECORDS = [
-    { :aggregate_id => AGGREGATE_ID,
-      :event_type => SecondEvent.name,
-      :version => 2,
-      :data => '' },
-    { :aggregate_id => AGGREGATE_ID,
-      :event_type => FirstEvent.name,
-      :version => 1,
-      :data => '' } ]
 end

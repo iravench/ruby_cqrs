@@ -1,7 +1,15 @@
 require_relative('../spec_helper')
 
 describe RubyCqrs::Domain::AggregateRepository do
-  let(:unsorted_event_records) { SomeDomain::UNSORTED_EVENT_RECORDS.dup }
+  let(:unsorted_event_records) { [
+    { :aggregate_id => SomeDomain::AGGREGATE_ID,
+      :event_type => SomeDomain::SecondEvent.name,
+      :version => 2,
+      :data => '' },
+    { :aggregate_id => SomeDomain::AGGREGATE_ID,
+      :event_type => SomeDomain::FirstEvent.name,
+      :version => 1,
+      :data => '' } ] }
   let(:aggregate_id) { SomeDomain::AGGREGATE_ID }
   let(:event_store_load_result) { { :aggregate_id => aggregate_id,
                                     :aggregate_type => 'SomeDomain::AggregateRoot',
