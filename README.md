@@ -21,10 +21,8 @@ Or install it yourself as:
     $ gem install ruby_cqrs
 
 ## Usage
-
-
-## Development
-
+refer to bellow spec for how to use this gem in your code
+https://github.com/iravench/ruby_cqrs/blob/master/spec/feature/basic_usage_spec.rb
 
 ## Contributing
 
