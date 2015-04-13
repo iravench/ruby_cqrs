@@ -3,6 +3,7 @@ require_relative('../spec_helper')
 describe RubyCqrs::Domain::Aggregate do
   let(:aggregate_id) { SomeDomain::AGGREGATE_ID }
   let(:aggregate) { SomeDomain::AggregateRoot.new }
+  let(:unsorted_events) { [ SomeDomain::SecondEvent.new, SomeDomain::FirstEvent.new ] }
 
   describe '#new' do
     it 'has aggregate_id initilized as a valid uuid' do
@@ -46,7 +47,6 @@ describe RubyCqrs::Domain::Aggregate do
   end
 
   describe '#is_version_conflicted?' do
-    let(:unsorted_events) { [ SomeDomain::SecondEvent.new, SomeDomain::FirstEvent.new ] }
     let(:state) { { :aggregate_id => aggregate_id, :events => unsorted_events } }
     let(:loaded_aggregate) { aggregate.send(:load_from, state); aggregate; }
 
@@ -86,7 +86,6 @@ describe RubyCqrs::Domain::Aggregate do
   end
 
   describe '#load_from' do
-    let(:unsorted_events) { [ SomeDomain::SecondEvent.new, SomeDomain::FirstEvent.new ] }
     let(:state) { { :aggregate_id => aggregate_id, :events => unsorted_events } }
     let(:loaded_aggregate) { aggregate.send(:load_from, state); aggregate; }
 
