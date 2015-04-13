@@ -21,10 +21,10 @@ describe RubyCqrs::Data::InMemoryEventStore do
       state = event_store.load_by new_aggregate.aggregate_id, command_context
       expect(state[:aggregate_type]).to eq(aggregate_type_str)
       expect(state[:events].size).to eq(2)
-      expect(state[:events][0].version).to eq(1)
-      expect(state[:events][0].aggregate_id).to eq(new_aggregate.aggregate_id)
-      expect(state[:events][1].version).to eq(2)
-      expect(state[:events][1].aggregate_id).to eq(new_aggregate.aggregate_id)
+      expect(state[:events][0][:version]).to eq(1)
+      expect(state[:events][0][:aggregate_id]).to eq(new_aggregate.aggregate_id)
+      expect(state[:events][1][:version]).to eq(2)
+      expect(state[:events][1][:aggregate_id]).to eq(new_aggregate.aggregate_id)
     end
 
     it 'saves an existing aggregate then is able to load the correct data back' do
@@ -40,14 +40,14 @@ describe RubyCqrs::Data::InMemoryEventStore do
 
       expect(state[:aggregate_type]).to eq(aggregate_type_str)
       expect(state[:events].size).to eq(4)
-      expect(state[:events][0].version).to eq(1)
-      expect(state[:events][0].aggregate_id).to eq(old_aggregate.aggregate_id)
-      expect(state[:events][1].version).to eq(2)
-      expect(state[:events][1].aggregate_id).to eq(old_aggregate.aggregate_id)
-      expect(state[:events][2].version).to eq(3)
-      expect(state[:events][2].aggregate_id).to eq(old_aggregate.aggregate_id)
-      expect(state[:events][3].version).to eq(4)
-      expect(state[:events][3].aggregate_id).to eq(old_aggregate.aggregate_id)
+      expect(state[:events][0][:version]).to eq(1)
+      expect(state[:events][0][:aggregate_id]).to eq(old_aggregate.aggregate_id)
+      expect(state[:events][1][:version]).to eq(2)
+      expect(state[:events][1][:aggregate_id]).to eq(old_aggregate.aggregate_id)
+      expect(state[:events][2][:version]).to eq(3)
+      expect(state[:events][2][:aggregate_id]).to eq(old_aggregate.aggregate_id)
+      expect(state[:events][3][:version]).to eq(4)
+      expect(state[:events][3][:aggregate_id]).to eq(old_aggregate.aggregate_id)
     end
 
     it "receives correct input on #save with 1 snapshot taken when enough events get fired" do
@@ -73,7 +73,7 @@ describe RubyCqrs::Data::InMemoryEventStore do
       expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_type_str)
       expect(state[:events].size).to eq(0)
-      expect(state[:snapshot][:state]).to_not be_nil
+      expect(state[:snapshot][:data]).to_not be_nil
       expect(state[:snapshot][:version]).to be(30)
 
       aggregate = aggregate_s_45_type.new
@@ -160,7 +160,7 @@ describe RubyCqrs::Data::InMemoryEventStore do
       expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_type_str)
       expect(state[:events].size).to eq(0)
-      expect(state[:snapshot][:state]).to_not be_nil
+      expect(state[:snapshot][:data]).to_not be_nil
       expect(state[:snapshot][:version]).to be(30)
 
       aggregate = aggregate_s_45_type.new
@@ -173,7 +173,7 @@ describe RubyCqrs::Data::InMemoryEventStore do
       expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_s_45_type_str)
       expect(state[:events].size).to eq(0)
-      expect(state[:snapshot][:state]).to_not be_nil
+      expect(state[:snapshot][:data]).to_not be_nil
       expect(state[:snapshot][:version]).to be(45)
     end
 
@@ -202,7 +202,7 @@ describe RubyCqrs::Data::InMemoryEventStore do
       expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_type_str)
       expect(state[:events].size).to eq(0)
-      expect(state[:snapshot][:state]).to_not be_nil
+      expect(state[:snapshot][:data]).to_not be_nil
       expect(state[:snapshot][:version]).to be(45)
 
       aggregate = aggregate_s_45_type.new
@@ -213,7 +213,7 @@ describe RubyCqrs::Data::InMemoryEventStore do
       expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_s_45_type_str)
       expect(state[:events].size).to eq(0)
-      expect(state[:snapshot][:state]).to_not be_nil
+      expect(state[:snapshot][:data]).to_not be_nil
       expect(state[:snapshot][:version]).to be(60)
     end
 
@@ -254,7 +254,7 @@ describe RubyCqrs::Data::InMemoryEventStore do
       expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_type_str)
       expect(state[:events].size).to eq(0)
-      expect(state[:snapshot][:state]).to_not be_nil
+      expect(state[:snapshot][:data]).to_not be_nil
       expect(state[:snapshot][:version]).to be(60)
 
       aggregate = aggregate_s_45_type.new
@@ -267,7 +267,7 @@ describe RubyCqrs::Data::InMemoryEventStore do
       expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_s_45_type_str)
       expect(state[:events].size).to eq(0)
-      expect(state[:snapshot][:state]).to_not be_nil
+      expect(state[:snapshot][:data]).to_not be_nil
       expect(state[:snapshot][:version]).to be(90)
     end
 
@@ -332,7 +332,7 @@ describe RubyCqrs::Data::InMemoryEventStore do
       expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_type_str)
       expect(state[:events].size).to eq(15)
-      expect(state[:snapshot][:state]).to_not be_nil
+      expect(state[:snapshot][:data]).to_not be_nil
       expect(state[:snapshot][:version]).to be(60)
 
       aggregate = aggregate_s_45_type.new
@@ -349,7 +349,7 @@ describe RubyCqrs::Data::InMemoryEventStore do
       expect(state[:aggregate_id]).to eq(aggregate.aggregate_id)
       expect(state[:aggregate_type]).to eq(aggregate_s_45_type_str)
       expect(state[:events].size).to eq(0)
-      expect(state[:snapshot][:state]).to_not be_nil
+      expect(state[:snapshot][:data]).to_not be_nil
       expect(state[:snapshot][:version]).to be(105)
     end
 

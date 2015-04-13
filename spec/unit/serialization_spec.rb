@@ -1,7 +1,7 @@
 require_relative('../spec_helper')
 describe 'decoder & encoder' do
-  let(:unsupported_obj) { SomeDomain::FirstEvent.new }
-  let(:unsupported_obj_type) { SomeDomain::FirstEvent.name }
+  let(:unsupported_obj) { SomeDomain::FifthEvent.new }
+  let(:unsupported_obj_type) { SomeDomain::FifthEvent.name }
   let(:supported_obj) { SomeDomain::THIRD_EVENT_INSTANCE }
   let(:supported_obj_type) { SomeDomain::THIRD_EVENT_INSTANCE.class.name }
 

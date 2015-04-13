@@ -2,7 +2,7 @@ require_relative('../spec_helper.rb')
 
 class CustomerSnapshot
   include Beefcake::Message
-  include RubyCqrs::Data::Encodable
+  include RubyCqrs::Domain::Snapshot
 
   required :name,      :string, 1
   required :credit,    :int32,  2
@@ -11,7 +11,6 @@ end
 class CustomerCreated
   include RubyCqrs::Domain::Event
   include Beefcake::Message
-  include RubyCqrs::Data::Encodable
 
   required :name,      :string, 1
   required :credit,    :int32,  2
@@ -20,7 +19,6 @@ end
 class ProductOrdered
   include RubyCqrs::Domain::Event
   include Beefcake::Message
-  include RubyCqrs::Data::Encodable
 
   required :cost,       :int32,  1
 end

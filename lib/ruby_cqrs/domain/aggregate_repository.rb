@@ -8,6 +8,8 @@ module RubyCqrs
 
   module Domain
     class AggregateRepository
+      include RubyCqrs::Data::Decodable
+
       def find_by aggregate_id
         raise ArgumentError if aggregate_id.nil?
         raise ArgumentError unless Guid.validate? aggregate_id
@@ -35,6 +37,7 @@ module RubyCqrs
       end
 
       def create_instance_from state
+        try_decode_from state
         instance = state[:aggregate_type].constantize.new
         instance.send(:load_from, state)
         instance
@@ -63,11 +66,56 @@ module RubyCqrs
         to_return = []
         aggregates.inject(to_return) do |product, aggregate|
           raise ArgumentError unless aggregate.is_a? Aggregate
-          pending_changes = aggregate.send(:get_changes)
-          next if pending_changes.nil?
-          product << pending_changes
+          aggregate_change = aggregate.send(:get_changes)
+          next if aggregate_change.nil?
+          try_encode_from aggregate_change
+          product << aggregate_change
         end
         to_return
+      end
+
+      def try_decode_from state
+        state[:snapshot] = decode_snapshot_state_from state[:snapshot]\
+          if state.has_key? :snapshot
+
+        state[:events].map! { |event_record| decode_event_from event_record }\
+          if state[:events].size > 0
+      end
+
+      def decode_snapshot_state_from snapshot_record
+        snapshot_state = try_decode snapshot_record[:state_type], snapshot_record[:data]
+        { :state => snapshot_state, :version => snapshot_record[:version] }
+      end
+
+      def decode_event_from event_record
+        decoded_event = try_decode event_record[:event_type], event_record[:data]
+        decoded_event.instance_variable_set(:@aggregate_id, event_record[:aggregate_id])
+        decoded_event.instance_variable_set(:@version, event_record[:version])
+        decoded_event
+      end
+
+      def try_encode_from change
+        if change.has_key? :snapshot
+          encoded_snapshot = encode_data_from change[:snapshot][:state]
+          change[:snapshot] = { :state_type => change[:snapshot][:state_type],
+                                :version => change[:snapshot][:version],
+                                :data => encoded_snapshot }
+        end
+
+        if change[:events].size > 0
+          change[:events].map! { |event|
+            { :data => encode_data_from(event),
+              :aggregate_id => event.aggregate_id,
+              :event_type => event.class.name,
+              :version => event.version }
+          }
+        end
+      end
+
+      def encode_data_from obj
+        data = obj
+        data = data.try_encode if data.is_a? RubyCqrs::Data::Encodable
+        data
       end
     end
   end

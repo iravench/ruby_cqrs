@@ -31,7 +31,7 @@ module SomeDomain
     def on_forth_event event; @state += 1; end
 
     def take_a_snapshot
-      Snapshot.new(:state => @state)
+      SomeSnapshot.new(:state => @state)
     end
 
     def apply_snapshot snapshot_object
@@ -60,7 +60,34 @@ module SomeDomain
     def on_third_event event; @state += 1; end
 
     def take_a_snapshot
-      Snapshot.new(:state => @state)
+      SomeSnapshot.new(:state => @state)
+    end
+
+    def apply_snapshot snapshot_object
+      @state = snapshot_object.state
+    end
+  end
+
+  class AggregateRootWronglyImplementSnapshot
+    include RubyCqrs::Domain::Aggregate
+    include RubyCqrs::Domain::Snapshotable
+
+    attr_reader :state
+
+    def initialize
+      @state = 0
+      super
+    end
+
+    def test_fire
+      raise_event THIRD_EVENT_INSTANCE
+    end
+
+  private
+    def on_third_event event; @state += 1; end
+
+    def take_a_snapshot
+      WrongSnapshot.new(:state => @state)
     end
 
     def apply_snapshot snapshot_object
@@ -86,9 +113,15 @@ module SomeDomain
     def on_third_event event; @state += 1; end
   end
 
-  class Snapshot
+  class SomeSnapshot
     include Beefcake::Message
-    include RubyCqrs::Data::Encodable
+    include RubyCqrs::Domain::Snapshot
+
+    required :state,      :int32, 1
+  end
+
+  class WrongSnapshot
+    include Beefcake::Message
 
     required :state,      :int32, 1
   end
@@ -97,7 +130,7 @@ module SomeDomain
 
   class FirstEvent
     include RubyCqrs::Domain::Event
-    include RubyCqrs::Data::Encodable
+    include Beefcake::Message
 
     def initialize
       @aggregate_id = AGGREGATE_ID
@@ -107,7 +140,7 @@ module SomeDomain
 
   class SecondEvent
     include RubyCqrs::Domain::Event
-    include RubyCqrs::Data::Encodable
+    include Beefcake::Message
 
     def initialize
       @aggregate_id = AGGREGATE_ID
@@ -118,7 +151,6 @@ module SomeDomain
   class ThirdEvent
     include RubyCqrs::Domain::Event
     include Beefcake::Message
-    include RubyCqrs::Data::Encodable
 
     required :id,         :int32,   1
     required :name,       :string,  2
@@ -130,7 +162,6 @@ module SomeDomain
   class ForthEvent
     include RubyCqrs::Domain::Event
     include Beefcake::Message
-    include RubyCqrs::Data::Encodable
 
     required :order_id,   :int32,   1
     required :price,      :int32,   2
@@ -139,12 +170,25 @@ module SomeDomain
     optional :note,       :string,  4
   end
 
+  class FifthEvent
+    include RubyCqrs::Domain::Event
+  end
+
   THIRD_EVENT_INSTANCE = ThirdEvent.new(:id => 1, :name => 'some dude',\
                                         :phone => '13322244444', :note => 'good luck')
 
   FORTH_EVENT_INSTANCE = ForthEvent.new(:order_id => 100, :price => 2000,\
                                         :customer_id => 1, :note => 'sold!')
 
-  SORTED_EVENTS = [FirstEvent.new, SecondEvent.new]
-  UNSORTED_EVENTS = [SecondEvent.new, FirstEvent.new]
+  UNSORTED_EVENTS = [ SecondEvent.new, FirstEvent.new ]
+
+  UNSORTED_EVENT_RECORDS = [
+    { :aggregate_id => AGGREGATE_ID,
+      :event_type => SecondEvent.name,
+      :version => 2,
+      :data => '' },
+    { :aggregate_id => AGGREGATE_ID,
+      :event_type => FirstEvent.name,
+      :version => 1,
+      :data => '' } ]
 end

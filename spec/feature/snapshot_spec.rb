@@ -5,6 +5,7 @@ describe 'Snapshotable module' do
   let(:repository) { RubyCqrs::Domain::AggregateRepository.new\
                      RubyCqrs::Data::InMemoryEventStore.new, command_context }
   let(:aggregate_not_snapshot) { SomeDomain::AggregateRootNoSnapshot.new }
+  let(:aggregate_wrong_snapshot) { SomeDomain::AggregateRootWronglyImplementSnapshot.new }
   let(:aggregate) { SomeDomain::AggregateRoot.new }
   # an aggregate has a SNAPSHOT_THRESHOLD of 45
   let(:aggregate_s_45) { SomeDomain::AggregateRoot45Snapshot.new }
@@ -25,6 +26,14 @@ describe 'Snapshotable module' do
       repository.save aggregate_not_snapshot
       loaded_aggregate = repository.find_by aggregate_not_snapshot.aggregate_id
       expect(loaded_aggregate.state).to eq(45)
+    end
+  end
+
+  context "when an aggregate's snapshot feature is incorrectly implemented" do
+    it "raises NotADomainSnapshotError when enough events get fired" do
+      (1..30).each { |x| aggregate_wrong_snapshot.test_fire }
+      expect{ aggregate_wrong_snapshot.send(:get_changes) }.to\
+        raise_error(RubyCqrs::NotADomainSnapshotError)
     end
   end
 

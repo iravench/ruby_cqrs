@@ -1,11 +1,11 @@
 require_relative('../spec_helper')
 
 describe RubyCqrs::Domain::AggregateRepository do
-  let(:unsorted_events) { SomeDomain::UNSORTED_EVENTS }
+  let(:unsorted_event_records) { SomeDomain::UNSORTED_EVENT_RECORDS.dup }
   let(:aggregate_id) { SomeDomain::AGGREGATE_ID }
   let(:event_store_load_result) { { :aggregate_id => aggregate_id,
                                     :aggregate_type => 'SomeDomain::AggregateRoot',
-                                    :events => unsorted_events } }
+                                    :events => unsorted_event_records } }
   let(:event_store) do
     _event_store = (Class.new { include RubyCqrs::Data::EventStore}).new
     allow(_event_store).to receive(:load_by).and_return(event_store_load_result)
@@ -40,7 +40,7 @@ describe RubyCqrs::Domain::AggregateRepository do
 
     it "delegates the actual data loading to the EventStore instance's #load_by" do
       expect(event_store).to receive(:load_by) do |some_guid, some_command_context|
-        expect(UUIDTools::UUID.parse_raw(some_guid).valid?).to be(true)
+        expect(some_guid).to be_a_valid_uuid
         expect(some_command_context).to be(command_context)
       end.and_return event_store_load_result
 
@@ -64,8 +64,8 @@ describe RubyCqrs::Domain::AggregateRepository do
 
     context 'when the specified aggregate is found' do
       let(:aggregate) { repository.find_by(aggregate_id) }
-      let(:expeced_version) { unsorted_events.size }
-      let(:expeced_source_version) { unsorted_events.size }
+      let(:expeced_version) { unsorted_event_records.size }
+      let(:expeced_source_version) { unsorted_event_records.size }
 
       it 'returns an instance of expected type' do
         expect(aggregate).to be_an_instance_of(aggregate_type)

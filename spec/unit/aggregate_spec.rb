@@ -46,7 +46,7 @@ describe RubyCqrs::Domain::Aggregate do
   end
 
   describe '#is_version_conflicted?' do
-    let(:unsorted_events) { SomeDomain::UNSORTED_EVENTS }
+    let(:unsorted_events) { SomeDomain::UNSORTED_EVENTS.dup }
     let(:state) { { :aggregate_id => aggregate_id, :events => unsorted_events } }
     let(:loaded_aggregate) { aggregate.send(:load_from, state); aggregate; }
 
@@ -86,7 +86,7 @@ describe RubyCqrs::Domain::Aggregate do
   end
 
   describe '#load_from' do
-    let(:unsorted_events) { SomeDomain::UNSORTED_EVENTS }
+    let(:unsorted_events) { SomeDomain::UNSORTED_EVENTS.dup }
     let(:state) { { :aggregate_id => aggregate_id, :events => unsorted_events } }
     let(:loaded_aggregate) { aggregate.send(:load_from, state); aggregate; }
 

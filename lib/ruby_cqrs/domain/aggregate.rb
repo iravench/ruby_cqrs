@@ -57,6 +57,7 @@ module RubyCqrs
         snapshot_state = self.send :take_a_snapshot\
           if self.is_a? Snapshotable and self.send(:should_take_a_snapshot?)
         unless snapshot_state.nil?
+          raise NotADomainSnapshotError unless snapshot_state.is_a? Snapshot
           changes[:snapshot] = { :state => snapshot_state,
                                  :state_type => snapshot_state.class.name,
                                  :version => @version }
