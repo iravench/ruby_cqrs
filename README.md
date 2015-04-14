@@ -2,7 +2,7 @@
 
 # RubyCqrs
 
-A Ruby implementation of CQRS, using event sourcing.
+A Ruby implementation of CQRS, using event sourcing. go wiki cqrs for more information.
 
 ## Installation
 

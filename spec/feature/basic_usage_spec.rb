@@ -1,27 +1,29 @@
 require_relative('../spec_helper.rb')
 
-# after installing the gem, require the feature
+# after installing the gem, require its features
 require('ruby_cqrs')
 # define your domain object
 class Customer
-  # mark as a domain object
+  # mark your domain object as an aggregate
   include RubyCqrs::Domain::Aggregate
-  # makr as snapshotable
-  # the default setting is when more 30 events are raised
-  # after the last snapshot is taken, a new snapshot is generated
-  # change the default by defining SNAPSHOT_THRESHOLD = 20(or other number)
+  # optionally, also makr as snapshotable in order to avoid heavy events reading pressure
+  # if your aggregate won't be generating much events, you can just ignore this
+  # the default setting is thant when over 30 events get raised after the last snapshot taken,
+  # a new snapshot will be generated upon calling aggregate_repository.save
+  # change this default value by defining SNAPSHOT_THRESHOLD = 20(or other number)
   include RubyCqrs::Domain::Snapshotable
 
   attr_reader :name, :credit
 
   # unfortunately, you should not try to define your own initialize method
-  # at the time being, it could potentially cause error when the aggregate
-  # repository try to load your domain object back.
+  # at the time being, it could potentially cause error with aggregate_repository
+  # when it tries to instantiate an aggregate back to live.
+  # Still looking for better way to do this.
 
-  # define your domain object's behaviors
+  # define domain behaviors
   def create_profile name, credit
-    # again, this is like your normal initialize method,
-    # it should get called only once...
+    # again, this one method kinda serve as your normal initialize method here,
+    # which means it should be called once only
     raise RuntimeError.new('the profile has already been created') unless @name.nil?
     raise AgumentError if name.nil?
     raise AgumentError if credit < 100
@@ -38,9 +40,8 @@ class Customer
   end
 
 private
-  # when an event is raised or replayed,
-  # these methods will get called automatically,
-  # manage the domain object's internal state here
+  # when an event gets raised or replayed, these on_ methods will be called automatically,
+  # with the events's detail information, you can manage the aggregate's internal state
   def on_customer_created customer_created
     @name = customer_created.name
     @credit = customer_created.credit
@@ -50,9 +51,9 @@ private
     @credit -= product_ordered.cost
   end
 
-  # when a domain object is marked as snapshotable,
-  # you must implement these two methods to record the object's vital state
-  # and apply the snapshot in order to restore your object's data respectively
+  # when an aggregate is marked as snapshotable,
+  # following two methods must be implemented in order to record and restore
+  # the aggregate's vital state respectively,
   def take_a_snapshot
     CustomerSnapshot.new(:name => @name, :credit => @credit)
   end
@@ -63,10 +64,10 @@ private
   end
 end
 
-# define a snapshot to keep all vital state of your domain object
-# the repository will use the latest snapshot it can find
-# and events happened after the snapshot has been taken
-# to recreate your domain object
+# define a snapshot to keep all vital state
+# the repository will look for the latest snapshot it can find, plus
+# all events happened right after when that particular snapshot gets taken
+# in order to revive your aggregate instance
 class CustomerSnapshot
   include Beefcake::Message
   include RubyCqrs::Domain::Snapshot
@@ -75,7 +76,9 @@ class CustomerSnapshot
   required :credit,    :int32,  2
 end
 
-# defined the events your domain object will raise
+# defined the events your aggregate will raise
+# your domain's event collection can be defined in a way easy to share among teams
+# which enables smooth integration through event logs
 class CustomerCreated
   include RubyCqrs::Domain::Event
   include Beefcake::Message
@@ -91,15 +94,19 @@ class ProductOrdered
   required :cost,       :int32,  1
 end
 
-# here goes the spec of how you can use the domain object
+# here goes the spec of how you can use previously defined aggregate objects
 describe 'Your awesome customer domain objects powered by ruby_cqrs' do
-  # a context related to the command, which is specific to your problem domain
-  # normally, when a command arrives, one or more domain objects are created or loaded
+  # a context related to a command, which is specific to your problem domain
+  # normally, when the command arrives, one or more domain objects are activated
   # in order to fulfill the command's request
+  #
+  # a command context then encapsulates any information which could be of importance
+  # but not part of your current domain, you can later choose to persist all or
+  # part of the context to support further processing or integration.
   let(:command_context) {}
-  # you should implement your own event_store in order to persist your aggregate state
-  # you should read about the InMemoryEventStore implementation
-  # and make sure your response with correct data format
+  # you should implement your own event_store in order to persist aggregate state
+  # you can read about the InMemoryEventStore implementation
+  # to understand the data format pass in and out
   let(:event_store) { RubyCqrs::Data::InMemoryEventStore.new }
   # every time when a command arrives,
   # an aggregate repository gets created with related command context and event_store implementation
@@ -162,7 +169,7 @@ describe 'Your awesome customer domain objects powered by ruby_cqrs' do
     (1..30).each { lucy.order_product(10) }
     repository.save lucy
 
-    # well, you just have to trust a snapshot has been generated :)
+    # well, you'll just have to trust me a snapshot has been generated :)
   end
 
   it 'finds an old customer instance back from snapshot' do
@@ -170,7 +177,7 @@ describe 'Your awesome customer domain objects powered by ruby_cqrs' do
     repository.save lucy
     lucy_reload = repository.find_by lucy.aggregate_id
 
-    # again, it's been loaded from a snapshot ;)
+    # again, a snapshot has been applied to gain you a bit performance boost ;)
 
     expect(lucy_reload.name).to eq('Lucy')
     expect(lucy_reload.credit).to eq(700)
