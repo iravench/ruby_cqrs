@@ -37,7 +37,7 @@ module RubyCqrs
       end
 
       def create_instance_from state
-        try_decode_from state
+        try_decode_serialized_from state
         instance = state[:aggregate_type].constantize.new
         instance.send(:load_from, state)
         instance
@@ -68,17 +68,17 @@ module RubyCqrs
           raise ArgumentError unless aggregate.is_a? Aggregate
           aggregate_change = aggregate.send(:get_changes)
           next if aggregate_change.nil?
-          try_encode_from aggregate_change
+          try_encode_serializable_in aggregate_change
           product << aggregate_change
         end
         to_return
       end
 
-      def try_decode_from state
+      def try_decode_serialized_from state
         state[:snapshot] = decode_snapshot_state_from state[:snapshot]\
           if state.has_key? :snapshot
 
-        state[:events].map! { |event_record| decode_event_from event_record }\
+        state[:events] = state[:events].map { |event_record| decode_event_from event_record }\
           if state[:events].size > 0
       end
 
@@ -94,7 +94,7 @@ module RubyCqrs
         decoded_event
       end
 
-      def try_encode_from change
+      def try_encode_serializable_in change
         if change.has_key? :snapshot
           encoded_snapshot = encode_data_from change[:snapshot][:state]
           change[:snapshot] = { :state_type => change[:snapshot][:state_type],

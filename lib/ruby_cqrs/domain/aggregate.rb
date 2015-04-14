@@ -23,14 +23,14 @@ module RubyCqrs
       def load_from state
         sorted_events = state[:events].sort { |x, y| x.version <=> y.version }
         @aggregate_id = state[:aggregate_id]
-        try_load_snapshot_from state
+        try_apply_snapshot_in state
         sorted_events.each do |event|
           apply(event)
           @source_version += 1
         end
       end
 
-      def try_load_snapshot_from state
+      def try_apply_snapshot_in state
         if state.has_key? :snapshot and self.is_a? Snapshotable
           self.send :apply_snapshot, state[:snapshot][:state]
           @version = state[:snapshot][:version]
@@ -42,7 +42,7 @@ module RubyCqrs
       def get_changes
         return nil unless @pending_events.size > 0
         changes = {
-          :events => @pending_events,
+          :events => @pending_events.dup,
           :aggregate_id => @aggregate_id,
           :aggregate_type => self.class.name,
           :expecting_source_version => @source_version,
