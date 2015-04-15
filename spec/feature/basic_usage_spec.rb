@@ -15,7 +15,7 @@ class Customer
 
   attr_reader :name, :credit
 
-  # unfortunately, you should not try to define your own initialize method
+  # unfortunately, you should not try to define your own initialize method with parameters
   # at the time being, it could potentially cause error with aggregate_repository
   # when it tries to instantiate an aggregate back to live.
   # Still looking for better way to do this.
