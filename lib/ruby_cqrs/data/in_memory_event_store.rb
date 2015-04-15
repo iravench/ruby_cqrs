@@ -9,6 +9,18 @@ module RubyCqrs
         @snapshot_store = {}
       end
 
+      # the returned format is as bellow
+      # { :aggregate_id => some_aggregtate_id(uuid),
+      #   :aggregate_type => the full qualified name of the aggregate type(string),
+      #   :events => [ {:aggregate_id => the aggregate_id of the event belongs to(uuid),
+      #                 :event_type => the full qualified name of the event type(string),
+      #                 :version => the version number of the event(integer),
+      #                 :data => protobuf encoded content of the event object(string)}, ..., {} ],
+      #   :snapshot => { :state_type => the full qualified name of the snapshot type(string),
+      #                  :version => the version number of the aggregate when snapshot(integer),
+      #                  :data => protobuf encoded content of the snapshot object(string)} }
+      # the snapshot object could be null; and the events array should return events which has a version
+      # number greater than the version number of the returning snapshot, if any.
       def load_by guid, command_context
         key = guid.to_sym
         state = { :aggregate_id => guid,
@@ -23,6 +35,8 @@ module RubyCqrs
         state
       end
 
+      # the changes are defined as an array of aggregate change,
+      # each change's format is identical to what above load_by returns
       def save changes, command_context
         changes.each do |change|
           key = change[:aggregate_id].to_sym
