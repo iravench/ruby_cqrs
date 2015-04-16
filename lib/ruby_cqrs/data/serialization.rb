@@ -13,11 +13,7 @@ module RubyCqrs
         raise ObjectNotEncodableError
       end
     end
-  end
-end
 
-module RubyCqrs
-  module Data
     module Decodable
 
       def try_decode type_str, data

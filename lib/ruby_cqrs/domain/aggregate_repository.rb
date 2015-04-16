@@ -2,7 +2,7 @@ require 'active_support/inflector'
 require_relative '../guid'
 
 module RubyCqrs
-  class AggregateNotFound < Error; end
+  class AggregateNotFoundError < Error; end
   class AggregateConcurrencyError < Error; end
   class AggregateInstanceDuplicatedError < Error; end
 
@@ -15,7 +15,7 @@ module RubyCqrs
         raise ArgumentError unless Guid.validate? aggregate_id
 
         state = @event_store.load_by(aggregate_id, @command_context)
-        raise AggregateNotFound if (state.nil? or state[:aggregate_type].nil? or\
+        raise AggregateNotFoundError if (state.nil? or state[:aggregate_type].nil? or\
                                     ((state[:events].nil? or state[:events].empty?) and state[:snapshot].nil?))
 
         create_instance_from state

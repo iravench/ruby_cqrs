@@ -64,9 +64,9 @@ describe RubyCqrs::Domain::AggregateRepository do
       let(:matches_nothing_repository) { RubyCqrs::Domain::AggregateRepository.new\
                                          empty_event_store, command_context }
 
-      it 'raises error of type AggregateNotFound' do
+      it 'raises error of type AggregateNotFoundError' do
         expect { matches_nothing_repository.find_by(aggregate_id) }.to \
-          raise_error(RubyCqrs::AggregateNotFound)
+          raise_error(RubyCqrs::AggregateNotFoundError)
       end
     end
 
