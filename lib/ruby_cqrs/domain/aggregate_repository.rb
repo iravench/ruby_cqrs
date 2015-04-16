@@ -4,7 +4,7 @@ require_relative '../guid'
 module RubyCqrs
   class AggregateNotFoundError < Error; end
   class AggregateConcurrencyError < Error; end
-  class AggregateInstanceDuplicatedError < Error; end
+  class AggregateDuplicationError < Error; end
 
   module Domain
     class AggregateRepository
@@ -59,7 +59,7 @@ module RubyCqrs
 
       def verify_uniqueness_of aggregates
         uniq_array =  aggregates.uniq { |aggregate| aggregate.aggregate_id }
-        raise AggregateInstanceDuplicatedError unless uniq_array.size == aggregates.size
+        raise AggregateDuplicationError unless uniq_array.size == aggregates.size
       end
 
       def prep_changes_for aggregates

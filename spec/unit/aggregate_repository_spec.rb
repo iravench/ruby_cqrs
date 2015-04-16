@@ -183,13 +183,13 @@ describe RubyCqrs::Domain::AggregateRepository do
       end
 
       context 'when saving 2 instances of the same aggregate' do
-        it 'raises AggregateInstanceDuplicatedError and nothing should be changed' do
+        it 'raises AggregateDuplicationError and nothing should be changed' do
           aggregate_1 = aggregate_type.new
           aggregate_2 = aggregate_1.dup
           aggregate_1.test_fire
           aggregate_2.test_fire
           aggregates = [ aggregate_1, aggregate_2 ]
-          expect{ repository.save aggregates }.to raise_error(RubyCqrs::AggregateInstanceDuplicatedError)
+          expect{ repository.save aggregates }.to raise_error(RubyCqrs::AggregateDuplicationError)
           expect(aggregate_1.version).to_not eq(aggregate_1.instance_variable_get(:@source_verrsion))
           expect(aggregate_2.version).to_not eq(aggregate_2.instance_variable_get(:@source_verrsion))
         end
