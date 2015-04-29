@@ -1,4 +1,3 @@
-require('ruby_cqrs/error')
 require('ruby_cqrs/guid')
 
 require('ruby_cqrs/data/event_store')

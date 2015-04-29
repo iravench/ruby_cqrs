@@ -1,5 +1,5 @@
 module RubyCqrs
-  class NotADomainEventError < Error; end
+  class NotADomainEventError < StandardError; end
 
   module Domain
     module Event

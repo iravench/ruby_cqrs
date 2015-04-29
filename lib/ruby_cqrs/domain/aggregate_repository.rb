@@ -2,9 +2,9 @@ require 'active_support/inflector'
 require_relative '../guid'
 
 module RubyCqrs
-  class AggregateNotFoundError < Error; end
-  class AggregateConcurrencyError < Error; end
-  class AggregateDuplicationError < Error; end
+  class AggregateNotFoundError < StandardError; end
+  class AggregateConcurrencyError < StandardError; end
+  class AggregateDuplicationError < StandardError; end
 
   module Domain
     class AggregateRepository

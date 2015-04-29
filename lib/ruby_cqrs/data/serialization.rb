@@ -2,8 +2,8 @@ require 'active_support/inflector'
 require 'beefcake'
 
 module RubyCqrs
-  class ObjectNotEncodableError < Error; end
-  class ObjectNotDecodableError < Error; end
+  class ObjectNotEncodableError < StandardError; end
+  class ObjectNotDecodableError < StandardError; end
 
   module Data
     module Encodable

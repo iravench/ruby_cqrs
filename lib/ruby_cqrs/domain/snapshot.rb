@@ -1,5 +1,5 @@
 module RubyCqrs
-  class NotADomainSnapshotError < Error; end
+  class NotADomainSnapshotError < StandardError; end
 
   module Domain
     module Snapshot
