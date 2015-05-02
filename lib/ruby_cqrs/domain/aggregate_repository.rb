@@ -1,5 +1,7 @@
 require 'active_support/inflector'
 require_relative '../guid'
+require 'contracts'
+require_relative '../contracts'
 
 module RubyCqrs
   class AggregateNotFoundError < StandardError; end
@@ -8,12 +10,19 @@ module RubyCqrs
 
   module Domain
     class AggregateRepository
+      include Contracts
+      include Contracts::Modules
       include RubyCqrs::Data::Decodable
 
-      def find_by aggregate_id
-        raise ArgumentError if aggregate_id.nil?
-        raise ArgumentError unless Guid.validate? aggregate_id
+      Contract Validation::EventStore, Any => Any
+      def initialize event_store, command_context
+        raise ArgumentError unless event_store.is_a? Data::EventStore
+        @event_store = event_store
+        @command_context = command_context
+      end
 
+      Contract Validation::AggregateId => Validation::Aggregate
+      def find_by aggregate_id
         state = @event_store.load_by(aggregate_id, @command_context)
         raise AggregateNotFoundError if (state.nil? or state[:aggregate_type].nil? or\
                                     ((state[:events].nil? or state[:events].empty?) and state[:snapshot].nil?))
@@ -21,21 +30,19 @@ module RubyCqrs
         create_instance_from state
       end
 
-      def save one_or_many_aggregate
-        raise ArgumentError if one_or_many_aggregate.nil?
-        return delegate_persistence_of [ one_or_many_aggregate ] if one_or_many_aggregate.is_a? Aggregate
+      Contract Validation::Aggregate => nil
+      def save one_aggregate
+        delegate_persistence_of [ one_aggregate ]
+      end
 
-        raise ArgumentError unless one_or_many_aggregate.is_a? Enumerable and one_or_many_aggregate.size > 0
-        delegate_persistence_of one_or_many_aggregate
+      Contract ArrayOf[Validation::Aggregate] => nil
+      def save many_aggregate
+        delegate_persistence_of many_aggregate
       end
 
     private
-      def initialize event_store, command_context
-        raise ArgumentError unless event_store.is_a? Data::EventStore
-        @event_store = event_store
-        @command_context = command_context
-      end
-
+      Contract Or[Validation::SerializedAggregateState,\
+                  Validation::SerializedAggregateStateWithSnapshot] => Validation::Aggregate
       def create_instance_from state
         try_decode_serialized_from state
         instance = state[:aggregate_type].constantize.new
@@ -43,6 +50,7 @@ module RubyCqrs
         instance
       end
 
+      Contract ArrayOf[Validation::Aggregate] => nil
       def delegate_persistence_of aggregates
         verify_uniqueness_of aggregates
 
@@ -57,11 +65,16 @@ module RubyCqrs
         nil
       end
 
+      Contract ArrayOf[Validation::Aggregate] => nil
       def verify_uniqueness_of aggregates
         uniq_array =  aggregates.uniq { |aggregate| aggregate.aggregate_id }
         raise AggregateDuplicationError unless uniq_array.size == aggregates.size
+        nil
       end
 
+      Contract ArrayOf[Validation::Aggregate] =>\
+        Or[ ArrayOf[Validation::SerializedAggregateState],\
+            ArrayOf[Validation::SerializedAggregateStateWithSnapshot]]
       def prep_changes_for aggregates
         to_return = []
         aggregates.inject(to_return) do |product, aggregate|
@@ -74,12 +87,16 @@ module RubyCqrs
         to_return
       end
 
+      Contract Or[Validation::SerializedAggregateState,\
+                  Validation::SerializedAggregateStateWithSnapshot] => nil
       def try_decode_serialized_from state
         state[:snapshot] = decode_snapshot_state_from state[:snapshot]\
           if state.has_key? :snapshot
 
         state[:events] = state[:events].map { |event_record| decode_event_from event_record }\
           if state[:events].size > 0
+
+        nil
       end
 
       def decode_snapshot_state_from snapshot_record
@@ -94,6 +111,8 @@ module RubyCqrs
         decoded_event
       end
 
+      Contract Or[Validation::AggregateChanges,\
+                  Validation::AggregateChangesWithSnapshot] => nil
       def try_encode_serializable_in change
         if change.has_key? :snapshot
           encoded_snapshot = encode_data_from change[:snapshot][:state]
@@ -110,6 +129,8 @@ module RubyCqrs
               :version => event.version }
           }
         end
+
+        nil
       end
 
       def encode_data_from obj

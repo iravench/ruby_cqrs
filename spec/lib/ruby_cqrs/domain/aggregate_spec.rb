@@ -1,9 +1,14 @@
-require_relative('../spec_helper')
+require_relative('../../../spec_helper')
 
 describe RubyCqrs::Domain::Aggregate do
   let(:aggregate_id) { SomeDomain::AGGREGATE_ID }
   let(:aggregate) { SomeDomain::AggregateRoot.new }
+  let(:aggregate_type) { SomeDomain::AggregateRoot.name }
   let(:unsorted_events) { [ SomeDomain::SecondEvent.new, SomeDomain::FirstEvent.new ] }
+  let(:state) {{
+    :aggregate_id => aggregate_id,
+    :aggregate_type => aggregate_type,
+    :events => unsorted_events }}
 
   describe '#new' do
     it 'has aggregate_id initilized as a valid uuid' do
@@ -20,10 +25,6 @@ describe RubyCqrs::Domain::Aggregate do
   end
 
   describe '#raise_event' do
-    it 'raise NotADomainEventError when raising an object that is not a proper event' do
-      expect { aggregate.fire_weird_stuff }.to raise_error(RubyCqrs::NotADomainEventError)
-    end
-
     context 'after raising an event' do
       it 'has version increased by 1' do
         original_version = aggregate.version
@@ -47,7 +48,6 @@ describe RubyCqrs::Domain::Aggregate do
   end
 
   describe '#is_version_conflicted?' do
-    let(:state) { { :aggregate_id => aggregate_id, :events => unsorted_events } }
     let(:loaded_aggregate) { aggregate.send(:load_from, state); aggregate; }
 
     it 'returns true when supplied client side version does not match the server side persisted source_version' do
@@ -86,7 +86,6 @@ describe RubyCqrs::Domain::Aggregate do
   end
 
   describe '#load_from' do
-    let(:state) { { :aggregate_id => aggregate_id, :events => unsorted_events } }
     let(:loaded_aggregate) { aggregate.send(:load_from, state); aggregate; }
 
     context 'when loading events' do

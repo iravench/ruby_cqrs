@@ -1,4 +1,4 @@
-require_relative('../spec_helper')
+require_relative('../../../spec_helper')
 
 describe RubyCqrs::Domain::AggregateRepository do
   let(:unsorted_event_records) { [
@@ -23,29 +23,7 @@ describe RubyCqrs::Domain::AggregateRepository do
   let(:repository) { RubyCqrs::Domain::AggregateRepository.new event_store, command_context }
   let(:aggregate_type) { SomeDomain::AggregateRoot }
 
-  describe '#new' do
-    context 'when expecting arguments' do
-      it 'raises ArgumentError when the first argument is not an descendant from EventStore' do
-        expect { RubyCqrs::Domain::AggregateRepository.new Object.new, command_context }.to raise_error ArgumentError
-      end
-
-      it 'is initialized with an EventStore instance and an CommandContext instance' do
-        RubyCqrs::Domain::AggregateRepository.new event_store, command_context
-      end
-    end
-  end
-
   describe '#find_by' do
-    context 'when expecting arguments' do
-      it 'raises ArgumentError when aggregate_id is nil' do
-        expect { repository.find_by nil }.to raise_error ArgumentError
-      end
-
-      it 'raises ArgumentError when aggregate_id is not a valid guid' do
-        expect { repository.find_by 'some_invalid_guid' }.to raise_error ArgumentError
-      end
-    end
-
     it "delegates the actual data loading to the EventStore instance's #load_by" do
       expect(event_store).to receive(:load_by) do |some_guid, some_command_context|
         expect(some_guid).to be_a_valid_uuid
@@ -94,20 +72,6 @@ describe RubyCqrs::Domain::AggregateRepository do
   end
 
   describe '#save' do
-    context 'when expecting arguments' do
-      it 'raises ArgumentError when given 0 or nil argument or an 0 length enumerable' do
-        expect { repository.save }.to raise_error ArgumentError
-        expect { repository.save nil }.to raise_error ArgumentError
-        expect { repository.save [] }.to raise_error ArgumentError
-      end
-      it 'raises ArgumentError when the first argument is not an descendant from AggregateBase' do
-        expect { repository.save Object.new }.to raise_error ArgumentError
-      end
-      it 'raises ArgumentError when the first argument is not an enumerable of AggregateBase' do
-        expect { repository.save [ Object.new ] }.to raise_error ArgumentError
-      end
-    end
-
     describe 'during the saving process' do
       context 'when saving a single aggregate' do
         context 'when the aggregate has not been changed' do

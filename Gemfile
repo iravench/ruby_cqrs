@@ -3,10 +3,13 @@ source "https://rubygems.org"
 gem "uuidtools",      "2.1.5"
 gem "activesupport",  "4.2.1"
 gem "beefcake",       "1.0.0"
+gem 'contracts',      '0.9'
 
 group :test do
-  gem "rake",         "10.4.2"
-  gem "rspec",        "3.2.0"
+  gem "rake"
+  gem "rspec"
+  gem 'rb-fsevent', :require => false if RUBY_PLATFORM =~ /darwin/i
+  gem 'guard-rspec'
 end
 
 gem "codeclimate-test-reporter", group: :test, require: nil
