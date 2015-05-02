@@ -92,6 +92,5 @@ DEPENDENCIES
   contracts (= 0.9)
   guard-rspec
   rake
-  rb-fsevent
   rspec
   uuidtools (= 2.1.5)

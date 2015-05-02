@@ -8,7 +8,6 @@ gem 'contracts',      '0.9'
 group :test do
   gem "rake"
   gem "rspec"
-  gem 'rb-fsevent', :require => false if RUBY_PLATFORM =~ /darwin/i
   gem 'guard-rspec'
 end
 
